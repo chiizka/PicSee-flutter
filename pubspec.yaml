@@ -31,15 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  
-  flutter_native_splash: ^1.2.0
 
-flutter_native_splash:
-  image: assets/Cover_Page.png
-  color: "42a5f5"
-  fill: true
-  android: true
-  ios: true
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
