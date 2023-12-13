@@ -41,7 +41,7 @@ class _SplashScreenState extends State<SplashScreen>
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Color.fromARGB(255, 241, 147, 178),
+                Color.fromARGB(255, 241, 189, 206),
                 Color.fromARGB(255, 146, 88, 156)
               ],
               begin: Alignment.topRight,
