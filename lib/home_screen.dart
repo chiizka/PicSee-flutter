@@ -13,7 +13,7 @@ class HomeScreen extends StatelessWidget {
           child: ElevatedButton(
             child: const Text("Go to eme"),
             onPressed: (){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => gallery()));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const Gallery()));
             }
             )
 

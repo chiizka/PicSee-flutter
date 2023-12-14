@@ -25,9 +25,47 @@ List<ImageDetails> _images = [
   ImageDetails(
     imagepath: 'images/6.jpg',
   ),
+  ImageDetails(
+    imagepath: 'images/7.jpg',
+  ),
+  ImageDetails(
+    imagepath: 'images/8.jpg',
+  ),
+  ImageDetails(
+    imagepath: 'images/9.jpg',
+  ),
+  ImageDetails(
+    imagepath: 'images/10.jpg',
+  ),
+  ImageDetails(
+    imagepath: 'images/11.jpg',
+  ),
+  ImageDetails(
+    imagepath: 'images/12.jpg',
+  ),
+  ImageDetails(
+    imagepath: 'images/13.jpg',
+  ),
+  ImageDetails(
+    imagepath: 'images/14.jpg',
+  ),
+  ImageDetails(
+    imagepath: 'images/15.jpg',
+  ),
+  ImageDetails(
+    imagepath: 'images/16.jpg',
+  ),
+  ImageDetails(
+    imagepath: 'images/17.jpg',
+  ),
+  ImageDetails(
+    imagepath: 'images/18.jpg',
+  ),
 ];
 
-class gallery extends StatelessWidget {
+class Gallery extends StatelessWidget {
+  const Gallery({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -77,7 +115,7 @@ class gallery extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => MyWidget(
+                                builder: (context) => ImagePage(
                                   imagepath: _images[index].imagepath,
                                 ),
                               ),
