@@ -1,70 +1,41 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import "package:picsee/image.dart";
+import 'package:image_picker/image_picker.dart';
 
 void main() {
   SystemChrome.setEnabledSystemUIMode(SystemUiOverlay.values as SystemUiMode);
 }
 
-List<ImageDetails> _images = [
-  ImageDetails(
-    imagepath: 'images/1.jpg',
-  ),
-  ImageDetails(
-    imagepath: 'images/2.jpg',
-  ),
-  ImageDetails(
-    imagepath: 'images/3.jpg',
-  ),
-  ImageDetails(
-    imagepath: 'images/4.jpg',
-  ),
-  ImageDetails(
-    imagepath: 'images/5.jpg',
-  ),
-  ImageDetails(
-    imagepath: 'images/6.jpg',
-  ),
-  ImageDetails(
-    imagepath: 'images/7.jpg',
-  ),
-  ImageDetails(
-    imagepath: 'images/8.jpg',
-  ),
-  ImageDetails(
-    imagepath: 'images/9.jpg',
-  ),
-  ImageDetails(
-    imagepath: 'images/10.jpg',
-  ),
-  ImageDetails(
-    imagepath: 'images/11.jpg',
-  ),
-  ImageDetails(
-    imagepath: 'images/12.jpg',
-  ),
-  ImageDetails(
-    imagepath: 'images/13.jpg',
-  ),
-  ImageDetails(
-    imagepath: 'images/14.jpg',
-  ),
-  ImageDetails(
-    imagepath: 'images/15.jpg',
-  ),
-  ImageDetails(
-    imagepath: 'images/16.jpg',
-  ),
-  ImageDetails(
-    imagepath: 'images/17.jpg',
-  ),
-  ImageDetails(
-    imagepath: 'images/18.jpg',
-  ),
-];
+class Gallery extends StatefulWidget {
+  const Gallery({Key? key}) : super(key: key);
 
-class Gallery extends StatelessWidget {
-  const Gallery({super.key});
+  @override
+  _GalleryState createState() => _GalleryState();
+}
+
+class _GalleryState extends State<Gallery> {
+  late List<ImageDetails> _images;
+
+  @override
+  void initState() {
+    super.initState();
+    _images = [];
+    loadImages();
+  }
+
+  Future<void> loadImages() async {
+    // Use image_picker to get images from the device
+    final List<XFile>? imageFiles = await ImagePicker().pickMultiImage();
+
+    if (imageFiles != null) {
+      setState(() {
+        _images = imageFiles
+            .map((file) => ImageDetails(imageFile: File(file.path)))
+            .toList();
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,24 +82,19 @@ class Gallery extends StatelessWidget {
                     ),
                     itemBuilder: (context, index) {
                       return RawMaterialButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ImagePage(
-                                  imagepath: _images[index].imagepath,
-                                ),
-                              ),
-                            );
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(15),
-                                image: DecorationImage(
-                                  image: AssetImage(_images[index].imagepath),
-                                  fit: BoxFit.cover,
-                                )),
-                          ));
+                        onPressed: () {
+                          // Handle image tap
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(15),
+                            image: DecorationImage(
+                              image: FileImage(_images[index].imageFile),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      );
                     },
                     itemCount: _images.length,
                   ),
@@ -143,8 +109,9 @@ class Gallery extends StatelessWidget {
 }
 
 class ImageDetails {
-  final String imagepath;
+  final File imageFile;
+
   ImageDetails({
-    required this.imagepath,
+    required this.imageFile,
   });
 }
