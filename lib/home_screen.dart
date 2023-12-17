@@ -8,17 +8,15 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My App'),),
-        body: Center(
-          child: ElevatedButton(
-            child: const Text("Go to eme"),
-            onPressed: (){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const Gallery()));
-            }
-            )
-
-
+        title: const Text('My App'),
       ),
+      body: Center(
+          child: ElevatedButton(
+              child: const Text("Go to eme"),
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => const Gallery()));
+              })),
     );
   }
 }
