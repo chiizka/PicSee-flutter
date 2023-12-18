@@ -14,13 +14,11 @@ class _PermissionScreenState extends State<PermissionScreen> {
   @override
   void initState() {
     super.initState();
-    _initGallery();
+    _initPermission();
   }
 
-  Future<void> _initGallery() async {
-    // Check if storage permission is granted
-    final hasPermission = await PermissionService.hasStoragePermission();
-
+  Future<void> _initPermission() async {
+    var status = await Permission.storage.status;
     if (await PermissionService.checkPermanentlyDenied()) {
       // Show a permission dialog and go to the app permission settings
       _showPermissionSettingDialog();
@@ -28,17 +26,24 @@ class _PermissionScreenState extends State<PermissionScreen> {
       PermissionService.openSettings();
       FlutterExitApp.exitApp();
     } else {
-      if (!hasPermission) {
-        // If not granted, request permission
-        final granted = await PermissionService.requestStoragePermission();
-
-        if (!granted) {
-          // Show a goodbye dialog and exit the app
+      if (status.isGranted) {
+        // Permission is already granted, navigate to the home screen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen()),
+        );
+      } else {
+        // Permission is not granted, request it
+        var granted = await PermissionService.requestStoragePermission();
+        if (granted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => HomeScreen()),
+          );
+        } else {
+          // Permission denied, handle accordingly (e.g., show an error message)
           _showGoodbyeDialog();
         }
-      } else {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()));
       }
     }
   }
@@ -73,12 +78,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('My App'),
-      ),
-      body: Center(),
-    );
+    return Scaffold();
   }
 }
 
