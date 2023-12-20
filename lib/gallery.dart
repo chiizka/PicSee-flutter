@@ -1,106 +1,69 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart';
-
-void main() {
-  SystemChrome.setEnabledSystemUIMode(SystemUiOverlay.values as SystemUiMode);
-}
+import "package:picsee/all_photo_screen.dart";
+import "package:picsee/albums_screen.dart";
 
 class Gallery extends StatefulWidget {
-  const Gallery({Key? key}) : super(key: key);
-
   @override
-  _GalleryState createState() => _GalleryState();
+  _Gallery createState() => _Gallery();
 }
 
-class _GalleryState extends State<Gallery> {
-  late List<ImageDetails> _images;
-
-  @override
-  void initState() {
-    super.initState();
-    _images = [];
-    loadImages();
-  }
-
-  Future<void> loadImages() async {
-    // Use image_picker to get images from the device
-    final List<XFile>? imageFiles = await ImagePicker().pickMultiImage();
-
-    if (imageFiles != null) {
-      setState(() {
-        _images = imageFiles
-            .map((file) => ImageDetails(imageFile: File(file.path)))
-            .toList();
-      });
-    }
-  }
+class _Gallery extends State<Gallery> {
+  int _currentIndex = 1;
+  List<Widget> _screens = [
+    AllPhotoScreen(),
+    ImageFilesScreen(),
+    AlbumsScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: "gallery",
-      home: Scaffold(
-        backgroundColor: const Color.fromARGB(255, 174, 106, 208),
-        body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              const SizedBox(
-                height: 40,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Image Explorer'),
+      ),
+      body: _screens[_currentIndex],
+      bottomNavigationBar: ClipRRect(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(50.0),
+          bottom: Radius.circular(50.0),
+        ),
+        child: Container(
+          height: 100.0,
+          width: 20.0,
+          // margin: EdgeInsets.only(
+          //   bottom: 16.0,
+          //   left: 16.0,
+          //   right: 16.0,
+          // ),
+          child: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            backgroundColor: Color(0xFF909090),
+            iconSize: 40,
+            selectedFontSize:
+                0, // Set the selectedFontSize to 0 to hide the label when selected
+            unselectedFontSize:
+                0, // Set the unselectedFontSize to 0 to hide the label when unselected
+            selectedLabelStyle: TextStyle(fontSize: 0),
+            unselectedLabelStyle: TextStyle(fontSize: 0),
+            items: [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.image),
+                label: '',
               ),
-              const Text(
-                'Gallery',
-                style: TextStyle(
-                  fontSize: 25,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.center,
+              BottomNavigationBarItem(
+                icon: Icon(Icons.all_inbox),
+                label: '',
               ),
-              const SizedBox(
-                height: 40,
-              ),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 30,
-                  ),
-                  decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(30),
-                          topRight: Radius.circular(30))),
-                  child: GridView.builder(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisSpacing: 10,
-                      crossAxisCount: 3,
-                      mainAxisSpacing: 10,
-                    ),
-                    itemBuilder: (context, index) {
-                      return RawMaterialButton(
-                        onPressed: () {
-                          // Handle image tap
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(15),
-                            image: DecorationImage(
-                              image: FileImage(_images[index].imageFile),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                    itemCount: _images.length,
-                  ),
-                ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.folder),
+                label: '',
               ),
             ],
+            onTap: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
           ),
         ),
       ),
@@ -108,10 +71,13 @@ class _GalleryState extends State<Gallery> {
   }
 }
 
-class ImageDetails {
-  final File imageFile;
-
-  ImageDetails({
-    required this.imageFile,
-  });
+class ImageFilesScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('Image Files Screen'),
+      ),
+    );
+  }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:picsee/home_screen.dart';
+import 'package:picsee/gallery.dart';
 import 'package:flutter_exit_app/flutter_exit_app.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -30,7 +30,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
         // Permission is already granted, navigate to the home screen
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomeScreen()),
+          MaterialPageRoute(builder: (context) => Gallery()),
         );
       } else {
         // Permission is not granted, request it
@@ -38,7 +38,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
         if (granted) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => HomeScreen()),
+            MaterialPageRoute(builder: (context) => Gallery()),
           );
         } else {
           // Permission denied, handle accordingly (e.g., show an error message)
