@@ -34,38 +34,50 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-          width: double.infinity,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color.fromARGB(255, 241, 189, 206),
-                Color.fromARGB(255, 146, 88, 156)
-              ],
-              begin: Alignment.topRight,
-              end: Alignment.bottomLeft,
+        width: double.infinity,
+        color: Colors.white, // Set background color to white
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image(
+              image: AssetImage('assets/logo.png'),
+              width: 300,
+              height: 300,
+              fit: BoxFit.fill,
             ),
-          ),
-          child: const Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image(
-                  image: AssetImage('assets/logo.png'),
-                  width: 300,
-                  height: 300,
-                  fit: BoxFit.fill),
-              SizedBox(
-                height: 40,
-              ),
-              Text(
-                'PicSee',
-                style: TextStyle(
-                  fontStyle: FontStyle.italic,
-                  color: Colors.white,
-                  fontSize: 32,
+            SizedBox(
+              height: 40,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Pic',
+                  style: TextStyle(
+                    color: Color(0xFF241B1B),
+                    fontFamily: 'Poppins',
+                    fontSize: 64,
+                    fontStyle: FontStyle.normal,
+                    fontWeight: FontWeight.w700,
+                    height: 1.0, // Adjust line height
+                  ),
                 ),
-              )
-            ],
-          )),
+                Text(
+                  'See',
+                  style: TextStyle(
+                    color: Color(0xFF6552FE),
+                    fontFamily: 'Poppins',
+                    fontSize: 64,
+                    fontStyle: FontStyle.normal,
+                    fontWeight: FontWeight.w700,
+                    height: 1.0, // Adjust line height
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
