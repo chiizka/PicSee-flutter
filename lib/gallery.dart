@@ -18,9 +18,6 @@ class _Gallery extends State<Gallery> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Image Explorer'),
-      ),
       body: _screens[_currentIndex],
       bottomNavigationBar: ClipRRect(
         borderRadius: BorderRadius.vertical(
