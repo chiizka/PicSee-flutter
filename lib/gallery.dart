@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import "package:picsee/all_photo_screen.dart";
 import "package:picsee/albums_screen.dart";
+import "package:picsee/home_screen.dart";
 
 class Gallery extends StatefulWidget {
   @override
@@ -11,7 +12,7 @@ class _Gallery extends State<Gallery> {
   int _currentIndex = 1;
   List<Widget> _screens = [
     AllPhotoScreen(),
-    ImageFilesScreen(),
+    HomeScreen(),
     AlbumsScreen(),
   ];
 
@@ -63,17 +64,6 @@ class _Gallery extends State<Gallery> {
             },
           ),
         ),
-      ),
-    );
-  }
-}
-
-class ImageFilesScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Text('Image Files Screen'),
       ),
     );
   }

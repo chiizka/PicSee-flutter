@@ -1,15 +1,19 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:picsee/viewer_screen.dart';
+import 'package:picsee/albums_screen.dart';
 
 class AllPhotoScreen extends StatefulWidget {
+  final AlbumInfo albumInfo;
+
+  const AllPhotoScreen({required this.albumInfo});
+
   @override
   _AllPhotoScreenState createState() => _AllPhotoScreenState();
 }
 
 class _AllPhotoScreenState extends State<AllPhotoScreen> {
   List<String> imageFiles = [];
-  String root = '/storage/emulated/0';
 
   @override
   void initState() {
@@ -18,7 +22,7 @@ class _AllPhotoScreenState extends State<AllPhotoScreen> {
   }
 
   Future<void> initApp() async {
-    await findImageFiles(root);
+    await findImageFiles(widget.albumInfo.name);
   }
 
   Future<void> findImageFiles(String basePath) async {
@@ -72,7 +76,7 @@ class _AllPhotoScreenState extends State<AllPhotoScreen> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false, // Set this to false
+      debugShowCheckedModeBanner: false,
       title: "gallery",
       home: Scaffold(
         backgroundColor: const Color.fromARGB(255, 174, 106, 208),
@@ -84,7 +88,7 @@ class _AllPhotoScreenState extends State<AllPhotoScreen> {
                 height: 40,
               ),
               const Text(
-                'All Photos',
+                'Gallery',
                 style: TextStyle(
                   fontSize: 25,
                   fontWeight: FontWeight.w600,
@@ -144,6 +148,16 @@ class _AllPhotoScreenState extends State<AllPhotoScreen> {
                 ),
               ),
             ],
+          ),
+        ),
+        // Add the AppBar with a back button
+        appBar: AppBar(
+          title: Text('Pictures'),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.pop(context);
+            },
           ),
         ),
       ),

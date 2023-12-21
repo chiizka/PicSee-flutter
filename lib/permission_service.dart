@@ -19,31 +19,21 @@ class _PermissionScreenState extends State<PermissionScreen> {
 
   Future<void> _initPermission() async {
     var status = await Permission.storage.status;
-    if (await PermissionService.checkPermanentlyDenied()) {
-      // Show a permission dialog and go to the app permission settings
+
+    if (status.isPermanentlyDenied) {
       _showPermissionSettingDialog();
       await Future.delayed(Duration(seconds: 3));
-      PermissionService.openSettings();
+      openAppSettings();
       FlutterExitApp.exitApp();
     } else {
+      status = await Permission.storage.request();
       if (status.isGranted) {
-        // Permission is already granted, navigate to the home screen
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => Gallery()),
         );
       } else {
-        // Permission is not granted, request it
-        var granted = await PermissionService.requestStoragePermission();
-        if (granted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => Gallery()),
-          );
-        } else {
-          // Permission denied, handle accordingly (e.g., show an error message)
-          _showGoodbyeDialog();
-        }
+        _showGoodbyeDialog();
       }
     }
   }
@@ -79,32 +69,5 @@ class _PermissionScreenState extends State<PermissionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold();
-  }
-}
-
-class PermissionService {
-  static Future<bool> requestStoragePermission() async {
-    final permission = Permission.storage;
-
-    if (await permission.isDenied) {
-      await permission.request();
-    }
-    return permission.status.isGranted;
-  }
-
-  static Future<bool> hasStoragePermission() async {
-    final permission = Permission.storage;
-
-    return permission.status.isGranted;
-  }
-
-  static Future<bool> checkPermanentlyDenied() async {
-    final permission = Permission.storage;
-
-    return await permission.status.isPermanentlyDenied;
-  }
-
-  static Future<void> openSettings() async {
-    openAppSettings();
   }
 }
