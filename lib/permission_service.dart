@@ -20,22 +20,25 @@ class _PermissionScreenState extends State<PermissionScreen> {
   Future<void> _initPermission() async {
     var status = await Permission.storage.status;
 
-    if (status.isPermanentlyDenied) {
+    if (status.isGranted) {
+      _navigateToGallery();
+    } else if (status.isPermanentlyDenied) {
       _showPermissionSettingDialog();
-      await Future.delayed(Duration(seconds: 3));
-      openAppSettings();
-      FlutterExitApp.exitApp();
     } else {
       status = await Permission.storage.request();
       if (status.isGranted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => Gallery()),
-        );
+        _navigateToGallery();
       } else {
         _showGoodbyeDialog();
       }
     }
+  }
+
+  void _navigateToGallery() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => Gallery()),
+    );
   }
 
   void _showGoodbyeDialog() {
@@ -43,7 +46,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Goodbye'),
-        content: Text('Permission denied. Exiting the app.'),
+        content: Text('Permission denied. Exiting the app uwu.'),
         actions: [
           TextButton(
             onPressed: () {
@@ -60,14 +63,30 @@ class _PermissionScreenState extends State<PermissionScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-          title: Text('Permission'),
-          content: Text(
-              'Permission denied. Allow permision storage access on app setting.')),
+        title: Text('Permission Required'),
+        content: Text('Please grant storage permission to use the app.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              openAppSettings();
+            },
+            child: Text('Open Settings'),
+          ),
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold();
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Permission Screen'),
+      ),
+      body: Center(
+        child:
+            CircularProgressIndicator(), // Add a loading indicator while checking permissions
+      ),
+    );
   }
 }
