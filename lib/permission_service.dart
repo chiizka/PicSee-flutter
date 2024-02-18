@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:picsee/gallery.dart';
 import 'package:flutter_exit_app/flutter_exit_app.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 class PermissionScreen extends StatefulWidget {
   const PermissionScreen({Key? key}) : super(key: key);
@@ -18,18 +19,48 @@ class _PermissionScreenState extends State<PermissionScreen> {
   }
 
   Future<void> _initPermission() async {
-    var status = await Permission.storage.status;
+    bool permissionStatus;
+    final deviceInfo = await DeviceInfoPlugin().androidInfo;
 
-    if (status.isGranted) {
-      _navigateToGallery();
-    } else if (status.isPermanentlyDenied) {
-      _showPermissionSettingDialog();
-    } else {
-      status = await Permission.storage.request();
-      if (status.isGranted) {
-        _navigateToGallery();
+    if (deviceInfo.version.sdkInt > 32) {
+      permissionStatus = await Permission.photos.request().isGranted;
+      var ispermanentdenied = await Permission.photos.status;
+
+      if (ispermanentdenied.isPermanentlyDenied) {
+        _showPermissionSettingDialog();
+        await Future.delayed(Duration(seconds: 3));
+        openAppSettings();
+        FlutterExitApp.exitApp();
       } else {
-        _showGoodbyeDialog();
+        permissionStatus = await Permission.photos.request().isGranted;
+        if (permissionStatus) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => Gallery()),
+          );
+        } else {
+          _showGoodbyeDialog();
+        }
+      }
+    } else {
+      permissionStatus = await Permission.storage.request().isGranted;
+      var ispermanentdenied = await Permission.storage.status;
+
+      if (ispermanentdenied.isPermanentlyDenied) {
+        _showPermissionSettingDialog();
+        await Future.delayed(Duration(seconds: 3));
+        openAppSettings();
+        FlutterExitApp.exitApp();
+      } else {
+        permissionStatus = await Permission.storage.request().isGranted;
+        if (permissionStatus) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => Gallery()),
+          );
+        } else {
+          _showGoodbyeDialog();
+        }
       }
     }
   }

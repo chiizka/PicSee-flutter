@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "C:/Users/Joriel/AndroidStudioProjects/PicSee-flutter/linux"
+    "cmake.sourceDirectory": "C:/Users/Joriel/AndroidStudioProjects/PicSee-flutter/linux",
+    "java.configuration.updateBuildConfiguration": "interactive"
 }

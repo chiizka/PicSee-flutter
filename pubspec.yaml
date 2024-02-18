@@ -37,6 +37,7 @@ dependencies:
   flutter_exit_app: ^1.1.2
   flutter_launcher_icons: ^0.13.1
   path_provider: ^2.1.1
+  device_info_plus: ^9.1.2
   intl: ^0.19.0
   
 
