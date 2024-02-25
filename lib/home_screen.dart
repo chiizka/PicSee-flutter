@@ -41,15 +41,15 @@ class HomeScreen extends StatelessWidget {
               // Handle Search button tap
               print('Search button tapped');
             },
-            style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all(Color(0xFF6552FE)),
-              fixedSize: MaterialStateProperty.all(Size(150, 60)),
+            style: ElevatedButton.styleFrom(
+              primary: Color(0xFF6552FE), // Set button color
+              fixedSize: Size(150, 60), // Set button size
             ),
             child: Text(
               'Search',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 18,
+                fontSize: 18, // Set text size
               ),
             ),
           ),
@@ -58,15 +58,15 @@ class HomeScreen extends StatelessWidget {
               // Handle Utilities button tap
               print('Utilities button tapped');
             },
-            style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all(Color(0xFF6552FE)),
-              fixedSize: MaterialStateProperty.all(Size(150, 60)),
+            style: ElevatedButton.styleFrom(
+              primary: Color(0xFF6552FE), // Set button color
+              fixedSize: Size(150, 60), // Set button size
             ),
             child: Text(
               'Utilities',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 18,
+                fontSize: 18, // Set text size
               ),
             ),
           ),
