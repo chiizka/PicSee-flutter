@@ -1,76 +1,203 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:picsee/viewer_screen.dart';
+import 'package:tflite_v2/tflite_v2.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<String> imageFiles = [];
+  String root = '/storage/emulated/0';
+  var _recognitions;
+  var v = "";
+
+  @override
+  void initState() {
+    super.initState();
+    initApp();
+  }
+
+  Future<void> initApp() async {
+    await findImageFiles(root);
+    await loadmodel();
+    detectImages();
+  }
+
+  Future<void> findImageFiles(String basePath) async {
+    List<String> files = [];
+
+    Directory baseDirectory = Directory(basePath);
+    if (!baseDirectory.existsSync()) {
+      print("Invalid path: $basePath");
+      return;
+    }
+
+    await _findImageFilesRecursive(baseDirectory, files);
+
+    setState(() {
+      imageFiles = files;
+    });
+  }
+
+  Future<void> _findImageFilesRecursive(
+      Directory directory, List<String> files) async {
+    List<FileSystemEntity> entities = directory.listSync();
+
+    for (FileSystemEntity entity in entities) {
+      if (entity is File && _isImageFile(entity.path)) {
+        // If the entity is an image file, add its path to the list
+        files.add(entity.path);
+      } else if (entity is Directory) {
+        // Check if the directory name is not "Android"
+        if (entity.path.endsWith('Android')) {
+          continue; // Skip the folder named "Android"
+        }
+
+        // Recursively check subdirectories
+        await _findImageFilesRecursive(entity, files);
+      }
+    }
+  }
+
+  bool _isImageFile(String filePath) {
+    List<String> validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp'];
+
+    for (String extension in validExtensions) {
+      if (filePath.toLowerCase().endsWith(extension)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  Future<void> loadmodel() async {
+    await Tflite.loadModel(
+      model: "assets/model.tflite",
+      labels: "assets/labels.txt",
+    );
+  }
+
+  Future<void> detectimage(File image) async {
+    int startTime = new DateTime.now().millisecondsSinceEpoch;
+    var recognitions = await Tflite.runModelOnImage(
+      path: image.path,
+      numResults: 8,
+      threshold: 0.05,
+      imageMean: 127.5,
+      imageStd: 127.5,
+    );
+    setState(() {
+      _recognitions = recognitions;
+      v = recognitions.toString();
+      // dataList = List<Map<String, dynamic>>.from(jsonDecode(v));
+    });
+
+    print("//////////////////////////////////////////////////");
+    print("File: ${image.path}");
+
+    // Check if recognitions is not null and is not an empty list before iterating
+    if (recognitions != null && recognitions.isNotEmpty) {
+      for (var recognition in recognitions) {
+        if (recognition['confidence'] >= 0.50) {
+          print("Label: ${recognition['label']}");
+        }
+      }
+    }
+
+    print("//////////////////////////////////////////////////");
+    int endTime = new DateTime.now().millisecondsSinceEpoch;
+    print("Inference took ${endTime - startTime}ms");
+  }
+
+  Future<void> detectImages() async {
+    for (String imagePath in imageFiles) {
+      File image = File(imagePath);
+      await detectimage(image);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(80.0),
-        child: AppBar(
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Pic',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
+    return MaterialApp(
+      debugShowCheckedModeBanner: false, // Set this to false
+      title: "gallery",
+      home: Scaffold(
+        backgroundColor: const Color.fromARGB(255, 174, 106, 208),
+        body: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              const SizedBox(
+                height: 40,
               ),
-              Text(
-                'See',
+              const Text(
+                'All Photos',
                 style: TextStyle(
-                  color: Color(0xFF6552FE),
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 25,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(
+                height: 40,
+              ),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 30,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                  ),
+                  child: GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisSpacing: 10,
+                      crossAxisCount: 3,
+                      mainAxisSpacing: 10,
+                    ),
+                    itemBuilder: (context, index) {
+                      return RawMaterialButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ViewerScreen(
+                                imageFiles: imageFiles,
+                                initialIndex: index,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(15),
+                            image: DecorationImage(
+                              image: FileImage(File(imageFiles[index])),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    itemCount: imageFiles.length,
+                  ),
                 ),
               ),
             ],
           ),
-          centerTitle: true,
-          elevation: 0,
-          backgroundColor: Colors.transparent,
         ),
-      ),
-      body: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          ElevatedButton(
-            onPressed: () {
-              // Handle Search button tap
-              print('Search button tapped');
-            },
-            style: ElevatedButton.styleFrom(
-              primary: Color(0xFF6552FE), // Set button color
-              fixedSize: Size(150, 60), // Set button size
-            ),
-            child: Text(
-              'Search',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18, // Set text size
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              // Handle Utilities button tap
-              print('Utilities button tapped');
-            },
-            style: ElevatedButton.styleFrom(
-              primary: Color(0xFF6552FE), // Set button color
-              fixedSize: Size(150, 60), // Set button size
-            ),
-            child: Text(
-              'Utilities',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18, // Set text size
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

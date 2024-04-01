@@ -58,7 +58,7 @@ class _AllPhotoScreenState extends State<AllPhotoScreen> {
   }
 
   bool _isImageFile(String filePath) {
-    List<String> validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp'];
+    List<String> validExtensions = ['.jpg', '.jpeg', '.png'];
 
     for (String extension in validExtensions) {
       if (filePath.toLowerCase().endsWith(extension)) {

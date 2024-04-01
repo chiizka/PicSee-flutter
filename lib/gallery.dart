@@ -9,7 +9,7 @@ class Gallery extends StatefulWidget {
 }
 
 class _Gallery extends State<Gallery> {
-  int _currentIndex = 1;
+  int _currentIndex = 0;
   List<Widget> _screens = [
     AllPhotoScreen(),
     HomeScreen(),
