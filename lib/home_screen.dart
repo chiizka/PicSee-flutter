@@ -14,6 +14,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String root = '/storage/emulated/0';
   var _recognitions;
   var v = "";
+  Map<String, List<String>> imageAlbums = {};
 
   @override
   void initState() {
@@ -83,7 +84,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> detectimage(File image) async {
-    int startTime = new DateTime.now().millisecondsSinceEpoch;
     var recognitions = await Tflite.runModelOnImage(
       path: image.path,
       numResults: 8,
@@ -94,24 +94,19 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _recognitions = recognitions;
       v = recognitions.toString();
-      // dataList = List<Map<String, dynamic>>.from(jsonDecode(v));
     });
 
-    print("//////////////////////////////////////////////////");
-    print("File: ${image.path}");
-
-    // Check if recognitions is not null and is not an empty list before iterating
-    if (recognitions != null && recognitions.isNotEmpty) {
-      for (var recognition in recognitions) {
-        if (recognition['confidence'] >= 0.50) {
-          print("Label: ${recognition['label']}");
+    // Classify images and organize them into albums
+    for (int i = 0; i < recognitions!.length; i++) {
+      var label = recognitions[i]!['label'];
+      var confidence = recognitions[i]!['confidence'];
+      if (confidence >= 0.80) {
+        if (!imageAlbums.containsKey(label)) {
+          imageAlbums[label] = [];
         }
+        imageAlbums[label]!.add(image.path);
       }
     }
-
-    print("//////////////////////////////////////////////////");
-    int endTime = new DateTime.now().millisecondsSinceEpoch;
-    print("Inference took ${endTime - startTime}ms");
   }
 
   Future<void> detectImages() async {
@@ -124,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false, // Set this to false
+      debugShowCheckedModeBanner: false,
       title: "gallery",
       home: Scaffold(
         backgroundColor: const Color.fromARGB(255, 174, 106, 208),
@@ -160,38 +155,58 @@ class _HomeScreenState extends State<HomeScreen> {
                       topRight: Radius.circular(30),
                     ),
                   ),
-                  child: GridView.builder(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisSpacing: 10,
-                      crossAxisCount: 3,
-                      mainAxisSpacing: 10,
-                    ),
+                  child: ListView.builder(
+                    itemCount: imageAlbums.length,
                     itemBuilder: (context, index) {
-                      return RawMaterialButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ViewerScreen(
-                                imageFiles: imageFiles,
-                                initialIndex: index,
+                      var albumName = imageAlbums.keys.elementAt(index);
+                      var images = imageAlbums[albumName]!;
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            child: Text(
+                              albumName,
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          );
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(15),
-                            image: DecorationImage(
-                              image: FileImage(File(imageFiles[index])),
-                              fit: BoxFit.cover,
+                          ),
+                          SizedBox(
+                            height: 150,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: images.length,
+                              itemBuilder: (context, index) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 10),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => ViewerScreen(
+                                            imageFiles: images,
+                                            initialIndex: index,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: Image.file(
+                                      File(images[index]),
+                                      width: 120,
+                                      height: 120,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                           ),
-                        ),
+                        ],
                       );
                     },
-                    itemCount: imageFiles.length,
                   ),
                 ),
               ),
