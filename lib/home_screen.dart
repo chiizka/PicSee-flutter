@@ -14,7 +14,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String root = '/storage/emulated/0';
   var _recognitions;
   var v = "";
-  Map<String, List<String>> imageAlbums = {};
+  Map<String, List<String>> imageAlbums = {}; // Change here
 
   @override
   void initState() {
@@ -84,6 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> detectimage(File image) async {
+    int startTime = new DateTime.now().millisecondsSinceEpoch;
     var recognitions = await Tflite.runModelOnImage(
       path: image.path,
       numResults: 8,
@@ -96,15 +97,16 @@ class _HomeScreenState extends State<HomeScreen> {
       v = recognitions.toString();
     });
 
-    // Classify images and organize them into albums
+    int endTime = new DateTime.now().millisecondsSinceEpoch;
+    print("Inference took ${endTime - startTime}ms");
+
+    // Save paths of images categorized by classification
     for (int i = 0; i < recognitions!.length; i++) {
-      var label = recognitions[i]!['label'];
-      var confidence = recognitions[i]!['confidence'];
-      if (confidence >= 0.80) {
-        if (!imageAlbums.containsKey(label)) {
-          imageAlbums[label] = [];
-        }
-        imageAlbums[label]!.add(image.path);
+      if (recognitions[i]!['confidence'] >= 0.80) {
+        String category = recognitions[i]!['label'];
+        setState(() {
+          imageAlbums.putIfAbsent(category, () => []).add(image.path);
+        });
       }
     }
   }
