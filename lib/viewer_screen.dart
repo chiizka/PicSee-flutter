@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_view/photo_view.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
 
@@ -52,9 +53,9 @@ class _ViewerScreenState extends State<ViewerScreen> {
                 future: _currentImageStat,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.done) {
-                    return Image.file(
-                      File(widget.imageFiles[index]),
-                      fit: BoxFit.contain,
+                    return PhotoView(
+                      imageProvider: FileImage(File(widget.imageFiles[index])),
+                      initialScale: PhotoViewComputedScale.contained,
                     );
                   } else {
                     return Center(child: CircularProgressIndicator());
