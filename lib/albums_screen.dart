@@ -88,7 +88,8 @@ class _AlbumsScreen extends State<AlbumsScreen> {
       home: Scaffold(
         appBar: AppBar(
           title: const Text('Albums'),
-        ),
+          centerTitle: true, 
+        ), 
         body: GridView.builder(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2, // Number of columns
@@ -117,11 +118,20 @@ class _AlbumsScreen extends State<AlbumsScreen> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(15),
                     ),
-                    child: Image.file(
-                      File(albums[index].thumbnailPath),
-                      width: 100,
-                      height: 100,
-                      fit: BoxFit.cover,
+                    child: Stack(
+                      children: [
+                        Image.file(
+                          File(albums[index].thumbnailPath),
+                          width: 150,
+                          height: 150,
+                          fit: BoxFit.cover,
+                        ),
+                        Container(
+                          width: 150,
+                          height: 150,
+                          color: Colors.black.withOpacity(0.5), // Black opacity
+                        ),
+                      ],
                     ),
                   ),
                   SizedBox(height: 8),

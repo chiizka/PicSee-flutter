@@ -81,7 +81,7 @@ class _AllPhotoScreenState extends State<AllPhotoScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               const SizedBox(
-                height: 40,
+                height: 10,
               ),
               const Text(
                 'All Photos',
@@ -92,21 +92,27 @@ class _AllPhotoScreenState extends State<AllPhotoScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
+            Text(
+              ' ${imageFiles.length} Photos', // Display the count of photos
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.center,
+            ),
               const SizedBox(
-                height: 40,
+                height: 10,
               ),
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 30,
+                  padding: const EdgeInsets.only(
+                    top: 10, // Padding on top
+                    left: 10, 
+                    right: 10 
                   ),
                   decoration: const BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30),
-                    ),
+              
                   ),
                   child: GridView.builder(
                     gridDelegate:
@@ -130,7 +136,7 @@ class _AllPhotoScreenState extends State<AllPhotoScreen> {
                         },
                         child: Container(
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(15),
+                            borderRadius: BorderRadius.circular(5),
                             image: DecorationImage(
                               image: FileImage(File(imageFiles[index])),
                               fit: BoxFit.cover,

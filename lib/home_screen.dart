@@ -130,7 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               const SizedBox(
-                height: 40,
+                height: 10,
               ),
               const Text(
                 'All Photos',
@@ -152,10 +152,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   decoration: const BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30),
-                    ),
                   ),
                   child: ListView.builder(
                     itemCount: imageAlbums.length,
