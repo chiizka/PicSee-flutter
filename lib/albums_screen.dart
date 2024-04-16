@@ -88,13 +88,13 @@ class _AlbumsScreen extends State<AlbumsScreen> {
       home: Scaffold(
         appBar: AppBar(
           title: const Text('Albums'),
-          centerTitle: true, 
-        ), 
+          centerTitle: true,
+        ),
         body: GridView.builder(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2, // Number of columns
-            mainAxisSpacing: 8.0, // Spacing between rows
-            crossAxisSpacing: 8.0, // Spacing between columns
+            mainAxisSpacing: 0, // Spacing between rows
+            crossAxisSpacing: 0, // Spacing between columns
             childAspectRatio: 0.8, // Adjust the aspect ratio as needed
           ),
           itemCount: albums.length,
@@ -116,28 +116,42 @@ class _AlbumsScreen extends State<AlbumsScreen> {
                 children: [
                   Container(
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Stack(
                       children: [
-                        Image.file(
-                          File(albums[index].thumbnailPath),
-                          width: 150,
-                          height: 150,
-                          fit: BoxFit.cover,
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.file(
+                            File(albums[index].thumbnailPath),
+                            width: 170,
+                            height: 170,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                         Container(
-                          width: 150,
-                          height: 150,
-                          color: Colors.black.withOpacity(0.5), // Black opacity
+                            width: 170,
+                            height: 170,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(15),
+                            )),
+                        Positioned.fill(
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: Text(
+                              albums[index].name.split('/').last,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Colors.white, // Text color
+                                fontSize: 16, // Text size
+                                fontWeight: FontWeight.bold, // Text weight
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    albums[index].name,
-                    textAlign: TextAlign.center,
                   ),
                 ],
               ),

@@ -142,7 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(
-                height: 40,
+                height: 27,
               ),
               Expanded(
                 child: Container(
