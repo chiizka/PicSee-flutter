@@ -37,6 +37,7 @@ class _ViewerScreenState extends State<ViewerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
           PageView.builder(
@@ -56,6 +57,9 @@ class _ViewerScreenState extends State<ViewerScreen> {
                     return PhotoView(
                       imageProvider: FileImage(File(widget.imageFiles[index])),
                       initialScale: PhotoViewComputedScale.contained,
+                      backgroundDecoration: const BoxDecoration(
+                         color: Colors.white
+                      ),
                     );
                   } else {
                     return Center(child: CircularProgressIndicator());
@@ -96,7 +100,7 @@ class _ViewerScreenState extends State<ViewerScreen> {
                   }
                 },
               ),
-              backgroundColor: Colors.transparent,
+              backgroundColor: Color.fromARGB(255, 255, 255, 255),
               elevation: 0,
             ),
           ),
