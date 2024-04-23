@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:picsee/viewer_screen.dart';
+import 'package:picsee/classification_album_screen.dart';
 import 'package:tflite_v2/tflite_v2.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -12,9 +12,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   List<String> imageFiles = [];
   String root = '/storage/emulated/0';
-  var _recognitions;
-  var v = "";
-  Map<String, List<String>> imageAlbums = {}; // Change here
+  Map<String, List<String>> imageAlbums = {};
 
   @override
   void initState() {
@@ -50,15 +48,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
     for (FileSystemEntity entity in entities) {
       if (entity is File && _isImageFile(entity.path)) {
-        // If the entity is an image file, add its path to the list
         files.add(entity.path);
       } else if (entity is Directory) {
-        // Check if the directory name is not "Android"
         if (entity.path.endsWith('Android')) {
-          continue; // Skip the folder named "Android"
+          continue;
         }
 
-        // Recursively check subdirectories
         await _findImageFilesRecursive(entity, files);
       }
     }
@@ -84,7 +79,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> detectimage(File image) async {
-    int startTime = new DateTime.now().millisecondsSinceEpoch;
     var recognitions = await Tflite.runModelOnImage(
       path: image.path,
       numResults: 8,
@@ -92,15 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
       imageMean: 127.5,
       imageStd: 127.5,
     );
-    setState(() {
-      _recognitions = recognitions;
-      v = recognitions.toString();
-    });
 
-    int endTime = new DateTime.now().millisecondsSinceEpoch;
-    print("Inference took ${endTime - startTime}ms");
-
-    // Save paths of images categorized by classification
     for (int i = 0; i < recognitions!.length; i++) {
       if (recognitions[i]!['confidence'] >= 0.80) {
         String category = recognitions[i]!['label'];
@@ -122,94 +108,81 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: "gallery",
       home: Scaffold(
-        backgroundColor: const Color.fromARGB(255, 174, 106, 208),
-        body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              const SizedBox(
-                height: 10,
-              ),
-              const Text(
-                'All Photos',
-                style: TextStyle(
-                  fontSize: 25,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(
-                height: 27,
-              ),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 30,
+        appBar: AppBar(
+          title: const Text('Categories'),
+          centerTitle: true,
+        ),
+        body: GridView.builder(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2, // Number of columns
+            mainAxisSpacing: 0, // Spacing between rows
+            crossAxisSpacing: 0, // Spacing between columns
+            childAspectRatio: 0.8, // Adjust the aspect ratio as needed
+          ),
+          itemCount: imageAlbums.length,
+          itemBuilder: (context, index) {
+            var albumName = imageAlbums.keys.elementAt(index);
+            var thumbnailPath = imageAlbums[albumName]!.first;
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ClassificationAlbumScreen(
+                      classificationName: albumName,
+                      imageFiles: imageAlbums[albumName]!,
+                    ),
                   ),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                  ),
-                  child: ListView.builder(
-                    itemCount: imageAlbums.length,
-                    itemBuilder: (context, index) {
-                      var albumName = imageAlbums.keys.elementAt(index);
-                      var images = imageAlbums[albumName]!;
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
+                );
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.file(
+                            File(thumbnailPath),
+                            width: 170,
+                            height: 170,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Container(
+                          width: 170,
+                          height: 170,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                        ),
+                        Positioned.fill(
+                          child: Align(
+                            alignment: Alignment.center,
                             child: Text(
                               albumName,
-                              style: TextStyle(
-                                fontSize: 20,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
-                          SizedBox(
-                            height: 150,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: images.length,
-                              itemBuilder: (context, index) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(right: 10),
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => ViewerScreen(
-                                            imageFiles: images,
-                                            initialIndex: index,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    child: Image.file(
-                                      File(images[index]),
-                                      width: 120,
-                                      height: 120,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      );
-                    },
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
