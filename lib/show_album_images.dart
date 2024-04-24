@@ -36,6 +36,13 @@ class _AllPhotoScreenState extends State<AllPhotoScreen> {
 
     await _findImageFilesRecursive(baseDirectory, files);
 
+    // Sort the files based on their last modified time in descending order
+    files.sort((a, b) {
+      File fileA = File(a);
+      File fileB = File(b);
+      return fileB.lastModifiedSync().compareTo(fileA.lastModifiedSync());
+    });
+
     setState(() {
       imageFiles = files;
     });
@@ -92,7 +99,6 @@ class _AllPhotoScreenState extends State<AllPhotoScreen> {
                       Navigator.pop(context);
                     },
                   ),
-   
                   const Expanded(
                     child: Text(
                       'Gallery',
@@ -107,7 +113,6 @@ class _AllPhotoScreenState extends State<AllPhotoScreen> {
                   Container(width: 48),
                 ],
               ),
-
               Text(
                 ' ${imageFiles.length} Photos',
                 style: const TextStyle(
@@ -122,12 +127,11 @@ class _AllPhotoScreenState extends State<AllPhotoScreen> {
               Expanded(
                 child: Container(
                   padding: const EdgeInsets.only(
-                    top: 10, // Padding on top
-                    left: 10, 
-                    right: 10 
-                  ),
+                      top: 10, // Padding on top
+                      left: 10,
+                      right: 10),
                   decoration: const BoxDecoration(
-                    color: Colors.white,              
+                    color: Colors.white,
                   ),
                   child: GridView.builder(
                     gridDelegate:

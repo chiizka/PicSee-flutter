@@ -10,6 +10,7 @@ class AllPhotoScreen extends StatefulWidget {
 class _AllPhotoScreenState extends State<AllPhotoScreen> {
   List<String> imageFiles = [];
   String root = '/storage/emulated/0';
+  bool _initialized = false;
 
   @override
   void initState() {
@@ -17,8 +18,16 @@ class _AllPhotoScreenState extends State<AllPhotoScreen> {
     initApp();
   }
 
+  _AllPhotoScreenState() {
+    // Initialize the app only once
+    initApp();
+  }
+
   Future<void> initApp() async {
-    await findImageFiles(root);
+    if (!_initialized) {
+      await findImageFiles(root);
+      _initialized = true;
+    }
   }
 
   Future<void> findImageFiles(String basePath) async {
@@ -33,6 +42,9 @@ class _AllPhotoScreenState extends State<AllPhotoScreen> {
     await _findImageFilesRecursive(baseDirectory, files);
 
     setState(() {
+      // Sort the image files based on their last modified time
+      files.sort((a, b) =>
+          File(b).lastModifiedSync().compareTo(File(a).lastModifiedSync()));
       imageFiles = files;
     });
   }
@@ -92,14 +104,14 @@ class _AllPhotoScreenState extends State<AllPhotoScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
-            Text(
-              ' ${imageFiles.length} Photos', // Display the count of photos
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.white,
+              Text(
+                ' ${imageFiles.length} Photos', // Display the count of photos
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
               const SizedBox(
                 height: 10,
               ),
@@ -107,12 +119,11 @@ class _AllPhotoScreenState extends State<AllPhotoScreen> {
                 child: Container(
                   padding: const EdgeInsets.only(
                     top: 10, // Padding on top
-                    left: 10, 
-                    right: 10 
+                    left: 10,
+                    right: 10,
                   ),
                   decoration: const BoxDecoration(
                     color: Colors.white,
-              
                   ),
                   child: GridView.builder(
                     gridDelegate:

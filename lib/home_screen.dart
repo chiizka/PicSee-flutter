@@ -10,9 +10,10 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<String> imageFiles = [];
   String root = '/storage/emulated/0';
   Map<String, List<String>> imageAlbums = {};
+  bool isModelLoaded = false;
+  bool isImagesDetected = false; // Track if images have been detected
 
   @override
   void initState() {
@@ -21,9 +22,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> initApp() async {
-    await findImageFiles(root);
-    await loadmodel();
-    detectImages();
+    await loadModel();
+    if (!isImagesDetected) {
+      await findImageFiles(root);
+    }
   }
 
   Future<void> findImageFiles(String basePath) async {
@@ -36,9 +38,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     await _findImageFilesRecursive(baseDirectory, files);
-
+    await detectImages(files);
     setState(() {
-      imageFiles = files;
+      isImagesDetected = true; // Update flag after detecting images
     });
   }
 
@@ -71,36 +73,35 @@ class _HomeScreenState extends State<HomeScreen> {
     return false;
   }
 
-  Future<void> loadmodel() async {
-    await Tflite.loadModel(
-      model: "assets/model.tflite",
-      labels: "assets/labels.txt",
-    );
-  }
-
-  Future<void> detectimage(File image) async {
-    var recognitions = await Tflite.runModelOnImage(
-      path: image.path,
-      numResults: 8,
-      threshold: 0.05,
-      imageMean: 127.5,
-      imageStd: 127.5,
-    );
-
-    for (int i = 0; i < recognitions!.length; i++) {
-      if (recognitions[i]!['confidence'] >= 0.80) {
-        String category = recognitions[i]!['label'];
-        setState(() {
-          imageAlbums.putIfAbsent(category, () => []).add(image.path);
-        });
-      }
+  Future<void> loadModel() async {
+    if (!isModelLoaded) {
+      await Tflite.loadModel(
+        model: "assets/model.tflite",
+        labels: "assets/labels.txt",
+      );
+      isModelLoaded = true;
     }
   }
 
-  Future<void> detectImages() async {
+  Future<void> detectImages(List<String> imageFiles) async {
     for (String imagePath in imageFiles) {
       File image = File(imagePath);
-      await detectimage(image);
+      var recognitions = await Tflite.runModelOnImage(
+        path: image.path,
+        numResults: 8,
+        threshold: 0.05,
+        imageMean: 127.5,
+        imageStd: 127.5,
+      );
+
+      for (int i = 0; i < recognitions!.length; i++) {
+        if (recognitions[i]!['confidence'] >= 0.80) {
+          String category = recognitions[i]!['label'];
+          setState(() {
+            imageAlbums.putIfAbsent(category, () => []).add(image.path);
+          });
+        }
+      }
     }
   }
 
@@ -115,10 +116,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         body: GridView.builder(
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2, // Number of columns
-            mainAxisSpacing: 0, // Spacing between rows
-            crossAxisSpacing: 0, // Spacing between columns
-            childAspectRatio: 0.8, // Adjust the aspect ratio as needed
+            crossAxisCount: 2,
+            mainAxisSpacing: 0,
+            crossAxisSpacing: 0,
+            childAspectRatio: 0.8,
           ),
           itemCount: imageAlbums.length,
           itemBuilder: (context, index) {
