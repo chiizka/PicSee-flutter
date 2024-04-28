@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:picsee/viewer_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:picsee/classification_album_screen.dart';
 import 'package:tflite_v2/tflite_v2.dart';
@@ -105,8 +106,16 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  String _searchText = '';
+
   @override
   Widget build(BuildContext context) {
+    // Filter all image files based on search text
+    var filteredImages = imageAlbums.values
+        .expand((list) => list)
+        .where((path) => path.toLowerCase().contains(_searchText.toLowerCase()))
+        .toList(); // Convert the iterable to a list
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
@@ -114,76 +123,143 @@ class _HomeScreenState extends State<HomeScreen> {
           title: const Text('Categories'),
           centerTitle: true,
         ),
-        body: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            mainAxisSpacing: 0,
-            crossAxisSpacing: 0,
-            childAspectRatio: 0.8,
-          ),
-          itemCount: imageAlbums.length,
-          itemBuilder: (context, index) {
-            var albumName = imageAlbums.keys.elementAt(index);
-            var thumbnailPath = imageAlbums[albumName]!.first;
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ClassificationAlbumScreen(
-                      classificationName: albumName,
-                      imageFiles: imageAlbums[albumName]!,
-                    ),
-                  ),
-                );
-              },
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: Image.file(
-                            File(thumbnailPath),
-                            width: 170,
-                            height: 170,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        Container(
-                          width: 170,
-                          height: 170,
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                        ),
-                        Positioned.fill(
-                          child: Align(
-                            alignment: Alignment.center,
-                            child: Text(
-                              albumName,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
+        body: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                onChanged: (value) {
+                  setState(() {
+                    _searchText = value;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: 'Search...',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ),
+            Expanded(
+              child: GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 0,
+                  crossAxisSpacing: 0,
+                  childAspectRatio: 0.8,
+                ),
+                itemCount: _searchText.isEmpty
+                    ? imageAlbums.length
+                    : filteredImages.length,
+                itemBuilder: (context, index) {
+                  if (_searchText.isEmpty) {
+                    // Display categorized albums when no search is performed
+                    var albumName = imageAlbums.keys.elementAt(index);
+                    var thumbnailPath = imageAlbums[albumName]!.first;
+
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ClassificationAlbumScreen(
+                              classificationName: albumName,
+                              imageFiles: imageAlbums[albumName]!,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                        );
+                      },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Image.file(
+                                    File(thumbnailPath),
+                                    width: 170,
+                                    height: 170,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                Container(
+                                  width: 170,
+                                  height: 170,
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.5),
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                ),
+                                Positioned.fill(
+                                  child: Align(
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      albumName,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  } else {
+                    // Display filtered images when search is performed
+                    var imagePath = filteredImages[index];
+
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ViewerScreen(
+                              imageFiles: filteredImages,
+                              initialIndex: index,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Image.file(
+                                    File(imagePath),
+                                    width: 170,
+                                    height: 170,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                // You can add additional UI elements here if needed
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                },
               ),
-            );
-          },
+            ),
+          ],
         ),
       ),
     );
