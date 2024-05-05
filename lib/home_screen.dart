@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:picsee/viewer_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:picsee/classification_album_screen.dart';
+import 'package:picsee/viewer_screen.dart';
 import 'package:tflite_v2/tflite_v2.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,6 +15,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, List<String>> imageAlbums = {};
   bool isModelLoaded = false;
   bool isImagesDetected = false; // Track if images have been detected
+  String _searchText = '';
 
   @override
   void initState() {
@@ -106,15 +107,15 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  String _searchText = '';
-
   @override
   Widget build(BuildContext context) {
     // Filter all image files based on search text
-    var filteredImages = imageAlbums.values
-        .expand((list) => list)
-        .where((path) => path.toLowerCase().contains(_searchText.toLowerCase()))
-        .toList(); // Convert the iterable to a list
+    var filteredTags = imageAlbums.keys
+        .where((tag) => tag.toLowerCase().contains(_searchText.toLowerCase()))
+        .toList();
+
+    var filteredImages =
+        filteredTags.expand((tag) => imageAlbums[tag]!).toList();
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
