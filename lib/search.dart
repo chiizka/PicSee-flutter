@@ -94,8 +94,13 @@ class _SearchScreenState extends State<SearchScreen> {
               TextField(
                 controller: _searchController,
                 onChanged: (value) {
-                  // You can perform search/filtering here
-                  print('Searching for: $value');
+                  // Update selectedTags based on the content of the TextField
+                  List<String> updatedTags = value.split(' ');
+                  setState(() {
+                    selectedTags.clear();
+                    selectedTags
+                        .addAll(updatedTags.where((tag) => tag.isNotEmpty));
+                  });
                 },
                 decoration: InputDecoration(
                   hintText: 'Search...',
@@ -138,13 +143,6 @@ class _SearchScreenState extends State<SearchScreen> {
                       ),
                     );
                   }).toList(),
-                ),
-              ),
-              Center(
-                // Center the search button
-                child: ElevatedButton(
-                  onPressed: _searchImages,
-                  child: Text('Search'),
                 ),
               ),
             ],

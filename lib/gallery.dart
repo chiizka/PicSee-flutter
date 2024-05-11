@@ -16,15 +16,13 @@ class _Gallery extends State<Gallery> {
     AlbumsScreen(),
   ];
 
-  
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: _screens[_currentIndex],
       bottomNavigationBar: ClipRRect(
         child: Container(
-          height:60.0,
+          height: 60.0,
           width: 20.0,
           // margin: EdgeInsets.only(
           //   bottom: 16.0,
@@ -36,7 +34,7 @@ class _Gallery extends State<Gallery> {
             backgroundColor: Color.fromARGB(255, 255, 255, 255),
             iconSize: 30,
             selectedFontSize:
-               10, // Set the selectedFontSize to 0 to hide the label when selected
+                10, // Set the selectedFontSize to 0 to hide the label when selected
             unselectedFontSize:
                 10, // Set the unselectedFontSize to 0 to hide the label when unselected
             selectedLabelStyle: const TextStyle(
@@ -47,7 +45,7 @@ class _Gallery extends State<Gallery> {
               fontSize: 10,
               fontWeight: FontWeight.bold, // Make unselected text bold
             ),
-             selectedItemColor: const Color.fromARGB(255, 174, 106, 208),
+            selectedItemColor: const Color.fromARGB(255, 174, 106, 208),
             items: [
               BottomNavigationBarItem(
                 icon: Icon(Icons.image_outlined),

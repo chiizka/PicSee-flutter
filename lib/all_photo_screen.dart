@@ -18,11 +18,6 @@ class _AllPhotoScreenState extends State<AllPhotoScreen> {
     initApp();
   }
 
-  _AllPhotoScreenState() {
-    // Initialize the app only once
-    initApp();
-  }
-
   Future<void> initApp() async {
     if (!_initialized) {
       await findImageFiles(root);
