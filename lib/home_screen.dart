@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:picsee/classification_album_screen.dart';
@@ -14,11 +15,20 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, List<String>> imageAlbums = {};
   bool isModelLoaded = false;
   bool isImagesDetected = false; // Track if images have been detected
+  late StreamController<Map<String, List<String>>> _imageAlbumsController;
 
   @override
   void initState() {
     super.initState();
+    _imageAlbumsController =
+        StreamController<Map<String, List<String>>>.broadcast();
     initApp();
+  }
+
+  @override
+  void dispose() {
+    _imageAlbumsController.close();
+    super.dispose();
   }
 
   Future<void> initApp() async {
@@ -84,6 +94,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> detectImages(List<String> imageFiles) async {
+    Map<String, List<String>> newImageAlbums = {};
+
     for (String imagePath in imageFiles) {
       File image = File(imagePath);
       var recognitions = await Tflite.runModelOnImage(
@@ -97,10 +109,14 @@ class _HomeScreenState extends State<HomeScreen> {
       for (int i = 0; i < recognitions!.length; i++) {
         if (recognitions[i]!['confidence'] >= 0.80) {
           String category = recognitions[i]!['label'];
-          setState(() {
-            imageAlbums.putIfAbsent(category, () => []).add(image.path);
-          });
+          newImageAlbums.putIfAbsent(category, () => []).add(image.path);
         }
+      }
+    }
+
+    if (mounted) {
+      if (!_imageAlbumsController.isClosed) {
+        _imageAlbumsController.add(newImageAlbums);
       }
     }
   }
@@ -114,106 +130,152 @@ class _HomeScreenState extends State<HomeScreen> {
           title: const Text('Categories'),
           centerTitle: true,
         ),
-        body: Column(
-          children: [
-            Container(
-              padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      // Navigate to the SearchScreen when the "Search" button is clicked
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => SearchScreen()),
-                      );
-                    },
-                    child: Text('Search'),
+        body: StreamBuilder<Map<String, List<String>>>(
+          stream: _imageAlbumsController.stream,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+
+            Map<String, List<String>>? data = snapshot.data;
+            if (data == null || data.isEmpty) {
+              return Center(
+                child: Text('No data available.'),
+              );
+            }
+
+            return Column(
+              children: [
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          // Navigate to the SearchScreen when the "Search" button is clicked
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => SearchScreen()),
+                          );
+                        },
+                        child: Text('Search'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          // Show the utilities panel when the "Utilities" button is clicked
+                          showModalBottomSheet(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return Container(
+                                padding: EdgeInsets.all(20),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        // Action for "New Album"
+                                      },
+                                      child: Text('New Album'),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        // Action for "Manual Categorization"
+                                      },
+                                      child: Text('Manual Categorization'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        },
+                        child: Text('Utilities'),
+                      ),
+                    ],
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      // Handle utilities button tap
-                    },
-                    child: Text('Utilities'),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 0,
-                  crossAxisSpacing: 0,
-                  childAspectRatio: 0.8,
                 ),
-                itemCount: imageAlbums.length,
-                itemBuilder: (context, index) {
-                  var albumName = imageAlbums.keys.elementAt(index);
-                  var thumbnailPath = imageAlbums[albumName]!.first;
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ClassificationAlbumScreen(
-                            classificationName: albumName,
-                            imageFiles: imageAlbums[albumName]!,
-                          ),
-                        ),
-                      );
-                    },
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Stack(
-                            children: [
-                              ClipRRect(
+                Expanded(
+                  child: GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 0,
+                      crossAxisSpacing: 0,
+                      childAspectRatio: 0.8,
+                    ),
+                    itemCount: data.length,
+                    itemBuilder: (context, index) {
+                      var albumName = data.keys.elementAt(index);
+                      var thumbnailPath = data[albumName]!.first;
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ClassificationAlbumScreen(
+                                classificationName: albumName,
+                                imageFiles: data[albumName]!,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(10),
-                                child: Image.file(
-                                  File(thumbnailPath),
-                                  width: 170,
-                                  height: 170,
-                                  fit: BoxFit.cover,
-                                ),
                               ),
-                              Container(
-                                width: 170,
-                                height: 170,
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.5),
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                              ),
-                              Positioned.fill(
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    albumName,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
+                              child: Stack(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Image.file(
+                                      File(thumbnailPath),
+                                      width: 170,
+                                      height: 170,
+                                      fit: BoxFit.cover,
                                     ),
                                   ),
-                                ),
+                                  Container(
+                                    width: 170,
+                                    height: 170,
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withOpacity(0.5),
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                  ),
+                                  Positioned.fill(
+                                    child: Align(
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        albumName,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
+                      );
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

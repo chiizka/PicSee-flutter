@@ -1,49 +1,62 @@
 import 'package:flutter/material.dart';
-import "package:picsee/all_photo_screen.dart";
-import "package:picsee/albums_screen.dart";
-import "package:picsee/home_screen.dart";
+import 'package:picsee/all_photo_screen.dart';
+import 'package:picsee/albums_screen.dart';
+import 'package:picsee/home_screen.dart';
 
 class Gallery extends StatefulWidget {
   @override
-  _Gallery createState() => _Gallery();
+  _GalleryState createState() => _GalleryState();
 }
 
-class _Gallery extends State<Gallery> {
+class _GalleryState extends State<Gallery> {
+  late PageController _pageController;
   int _currentIndex = 0;
-  List<Widget> _screens = [
-    AllPhotoScreen(),
-    HomeScreen(),
-    AlbumsScreen(),
-  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _currentIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_currentIndex],
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        children: [
+          AllPhotoScreen(),
+          HomeScreen(),
+          AlbumsScreen(),
+        ],
+      ),
       bottomNavigationBar: ClipRRect(
         child: Container(
           height: 60.0,
           width: 20.0,
-          // margin: EdgeInsets.only(
-          //   bottom: 16.0,
-          //   left: 16.0,
-          //   right: 16.0,
-          // ),
           child: BottomNavigationBar(
             currentIndex: _currentIndex,
             backgroundColor: Color.fromARGB(255, 255, 255, 255),
             iconSize: 30,
-            selectedFontSize:
-                10, // Set the selectedFontSize to 0 to hide the label when selected
-            unselectedFontSize:
-                10, // Set the unselectedFontSize to 0 to hide the label when unselected
+            selectedFontSize: 10,
+            unselectedFontSize: 10,
             selectedLabelStyle: const TextStyle(
               fontSize: 10,
-              fontWeight: FontWeight.bold, // Make selected text bold
+              fontWeight: FontWeight.bold,
             ),
             unselectedLabelStyle: const TextStyle(
               fontSize: 10,
-              fontWeight: FontWeight.bold, // Make unselected text bold
+              fontWeight: FontWeight.bold,
             ),
             selectedItemColor: const Color.fromARGB(255, 174, 106, 208),
             items: [
@@ -61,9 +74,11 @@ class _Gallery extends State<Gallery> {
               ),
             ],
             onTap: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
+              _pageController.animateToPage(
+                index,
+                duration: Duration(milliseconds: 500),
+                curve: Curves.ease,
+              );
             },
           ),
         ),
