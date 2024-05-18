@@ -17,6 +17,7 @@ class ClassificationAlbumScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(classificationName),
       ),
+      backgroundColor: Colors.white,
       body: GridView.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,

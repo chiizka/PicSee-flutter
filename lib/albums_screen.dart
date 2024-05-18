@@ -87,9 +87,17 @@ class _AlbumsScreen extends State<AlbumsScreen> {
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Albums'),
+          title: const Text(
+          'Albums',
+          style: TextStyle(
+            color:   Color.fromARGB(255, 174, 106, 208),
+            fontWeight: FontWeight.bold,
+            fontSize: 25// Make font bold here
+          ),
+        ),
           centerTitle: true,
         ),
+        backgroundColor: Colors.white,
         body: GridView.builder(
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2, // Number of columns

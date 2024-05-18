@@ -99,10 +99,10 @@ class _AllPhotoScreenState extends State<AllPhotoScreen> {
                       Navigator.pop(context);
                     },
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Gallery',
-                      style: TextStyle(
+                      widget.albumInfo.name.split('/').last,
+                      style: const TextStyle(
                         fontSize: 25,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
@@ -110,7 +110,7 @@ class _AllPhotoScreenState extends State<AllPhotoScreen> {
                       textAlign: TextAlign.center, // Center the text
                     ),
                   ),
-                  Container(width: 48),
+                    Container(width: 48),
                 ],
               ),
               Text(

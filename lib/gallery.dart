@@ -56,7 +56,7 @@ class _GalleryState extends State<Gallery> {
           width: 20.0,
           child: BottomNavigationBar(
             currentIndex: _currentIndex,
-            backgroundColor: Color.fromARGB(255, 255, 255, 255),
+            backgroundColor: const Color.fromRGBO(255, 255, 255, 1),
             iconSize: 30,
             selectedFontSize: 10,
             unselectedFontSize: 10,

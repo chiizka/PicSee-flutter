@@ -24,7 +24,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _imageAlbumsController = StreamController<Map<String, List<String>>>.broadcast();
+    _imageAlbumsController =
+        StreamController<Map<String, List<String>>>.broadcast();
     checkInitialization();
   }
 
@@ -49,7 +50,8 @@ class _HomeScreenState extends State<HomeScreen> {
         final cachedImageAlbums = await readCachedImageAlbums();
         print("Cached Image Albums: $cachedImageAlbums");
         if (cachedImageAlbums.isNotEmpty) {
-          print("*******************************************************************************");
+          print(
+              "*******************************************************************************");
           setState(() {
             imageAlbums = cachedImageAlbums;
             isImagesDetected = true;
@@ -57,7 +59,8 @@ class _HomeScreenState extends State<HomeScreen> {
           // Notify listeners with the loaded cached image albums
           _imageAlbumsController.add(imageAlbums);
         } else {
-          print("------------------------------------------------------------------------------------------");
+          print(
+              "------------------------------------------------------------------------------------------");
           // If there's no cache, initialize the app (unlikely case)
           await initApp();
         }
@@ -195,7 +198,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return File('${directory.path}/initialization_flag.txt');
   }
 
-  Future<void> writeCachedImageAlbums(Map<String, List<String>> imageAlbums) async {
+  Future<void> writeCachedImageAlbums(
+      Map<String, List<String>> imageAlbums) async {
     try {
       final file = await _getCachedImageAlbumsFile();
       if (file != null) {
@@ -207,26 +211,24 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<Map<String, List<String>>> readCachedImageAlbums() async {
-  try {
-    final file = await _getCachedImageAlbumsFile();
-    if (file != null && file.existsSync()) {
-      String content = await file.readAsString();
-      print('Cached image albums content: $content');
-      final decodedData = json.decode(content);
-      if (decodedData is Map<String, dynamic>) {
-        return decodedData.map((key, value) => MapEntry(key, List<String>.from(value)));
-      } else {
-        print('Invalid format for cached image albums data.');
+    try {
+      final file = await _getCachedImageAlbumsFile();
+      if (file != null && file.existsSync()) {
+        String content = await file.readAsString();
+        print('Cached image albums content: $content');
+        final decodedData = json.decode(content);
+        if (decodedData is Map<String, dynamic>) {
+          return decodedData
+              .map((key, value) => MapEntry(key, List<String>.from(value)));
+        } else {
+          print('Invalid format for cached image albums data.');
+        }
       }
+    } catch (e) {
+      print('Error reading cached image albums from file: $e');
     }
-  } catch (e) {
-    print('Error reading cached image albums from file: $e');
+    return {};
   }
-  return {};
-}
-
-
-
 
   Future<File?> _getCachedImageAlbumsFile() async {
     final directory = await getApplicationDocumentsDirectory();
@@ -238,8 +240,16 @@ class _HomeScreenState extends State<HomeScreen> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
+        backgroundColor: Colors.white,
         appBar: AppBar(
-          title: Text('Categories'),
+            title: const Text(
+          'Categories',
+          style: TextStyle(
+            color:   Color.fromARGB(255, 174, 106, 208),
+            fontWeight: FontWeight.bold,
+            fontSize: 25// Make font bold here
+          ),
+        ),
           centerTitle: true,
           actions: [
             IconButton(
@@ -250,7 +260,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   builder: (BuildContext context) {
                     return AlertDialog(
                       title: Text('Initialization Status'),
-                      content: Text(_initialized ? 'App initialized' : 'App not initialized'),
+                      content: Text(_initialized
+                          ? 'App initialized'
+                          : 'App not initialized'),
                       actions: [
                         TextButton(
                           onPressed: () {
@@ -268,7 +280,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         body: StreamBuilder<Map<String, List<String>>>(
           stream: _imageAlbumsController.stream,
-          builder: (context, AsyncSnapshot<Map<String, List<String>>?> snapshot) {
+          builder:
+              (context, AsyncSnapshot<Map<String, List<String>>?> snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(
                 child: CircularProgressIndicator(),
@@ -308,7 +321,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               return Container(
                                 padding: EdgeInsets.all(20),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
                                   children: [
                                     ElevatedButton(
                                       onPressed: () {
@@ -335,7 +349,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 Expanded(
                   child: GridView.builder(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       mainAxisSpacing: 0,
                       crossAxisSpacing: 0,
