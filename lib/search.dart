@@ -1,3 +1,4 @@
+
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -56,21 +57,26 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void _searchImages() {
-    // Navigate to the screen where you want to show the search results
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ShowSearchScreen(tags: selectedTags.toList()),
-      ),
-    );
-  }
+  // Ensure selectedTags is a Map<String, List<String>>
+  Map<String, List<String>> selectedTagsMap = {
+    for (var tag in selectedTags) tag: []
+  };
+
+  // Navigate to the screen where you want to show the search results
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ShowSearchScreen(tags: selectedTagsMap),
+    ),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        backgroundColor: Colors.white,
         appBar: AppBar(
           title: const Text('Search'),
           leading: IconButton(
@@ -88,7 +94,6 @@ class _SearchScreenState extends State<SearchScreen> {
           ],
         ),
         body: Container(
-          
           padding: const EdgeInsets.all(8.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
