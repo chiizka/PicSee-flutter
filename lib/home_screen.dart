@@ -107,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
 
       for (int i = 0; i < recognitions!.length; i++) {
-        if (recognitions[i]!['confidence'] >= 0.80) {
+        if (recognitions[i]!['confidence'] >= 0.90) {
           String category = recognitions[i]!['label'];
           newImageAlbums.putIfAbsent(category, () => []).add(image.path);
         }

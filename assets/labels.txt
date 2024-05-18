@@ -1,8 +1,9 @@
-Cat
-Dog
-Food
-Group
-Human
-Night
-Notes
-Solo
+01_solo
+02_duo
+03_group
+04_cat
+05_dog
+06_day
+07_food
+08_night
+09_notesdocuments
