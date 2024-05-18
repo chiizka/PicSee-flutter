@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:picsee/all_photo_screen.dart';
 import 'package:picsee/albums_screen.dart';
 import 'package:picsee/home_screen.dart';
+import 'package:picsee/empty.dart';
 
 class Gallery extends StatefulWidget {
   @override
@@ -35,9 +36,18 @@ class _GalleryState extends State<Gallery> {
           });
         },
         children: [
-          AllPhotoScreen(),
-          HomeScreen(),
-          AlbumsScreen(),
+          PageStorage(
+            bucket: PageStorageBucket(), // Add an empty bucket
+            child: AllPhotoScreen(),
+          ),
+          PageStorage(
+            bucket: PageStorageBucket(), // Add an empty bucket
+            child: HomeScreen(),
+          ),
+          PageStorage(
+            bucket: PageStorageBucket(), // Add an empty bucket
+            child: AlbumsScreen(),
+          ),
         ],
       ),
       bottomNavigationBar: ClipRRect(
