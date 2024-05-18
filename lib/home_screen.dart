@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:picsee/classification_album_screen.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:tflite_v2/tflite_v2.dart';
+import 'package:picsee/classification_album_screen.dart';
 import 'search.dart'; // Import the SearchScreen
 
 class HomeScreen extends StatefulWidget {
@@ -14,15 +17,15 @@ class _HomeScreenState extends State<HomeScreen> {
   String root = '/storage/emulated/0';
   Map<String, List<String>> imageAlbums = {};
   bool isModelLoaded = false;
-  bool isImagesDetected = false; // Track if images have been detected
+  bool isImagesDetected = false;
+  bool _initialized = false;
   late StreamController<Map<String, List<String>>> _imageAlbumsController;
 
   @override
   void initState() {
     super.initState();
-    _imageAlbumsController =
-        StreamController<Map<String, List<String>>>.broadcast();
-    initApp();
+    _imageAlbumsController = StreamController<Map<String, List<String>>>.broadcast();
+    checkInitialization();
   }
 
   @override
@@ -31,10 +34,46 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  Future<void> checkInitialization() async {
+    try {
+      final initialized = await readInitializationFlag();
+      print("Initialization flag: $initialized");
+
+      setState(() {
+        _initialized = initialized;
+      });
+
+      if (!_initialized) {
+        await initApp();
+      } else {
+        final cachedImageAlbums = await readCachedImageAlbums();
+        print("Cached Image Albums: $cachedImageAlbums");
+        if (cachedImageAlbums.isNotEmpty) {
+          print("*******************************************************************************");
+          setState(() {
+            imageAlbums = cachedImageAlbums;
+            isImagesDetected = true;
+          });
+          // Notify listeners with the loaded cached image albums
+          _imageAlbumsController.add(imageAlbums);
+        } else {
+          print("------------------------------------------------------------------------------------------");
+          // If there's no cache, initialize the app (unlikely case)
+          await initApp();
+        }
+      }
+    } catch (e) {
+      print('Error checking initialization: $e');
+    }
+  }
+
   Future<void> initApp() async {
-    await loadModel();
-    if (!isImagesDetected) {
+    try {
+      await loadModel();
       await findImageFiles(root);
+      await writeInitializationFlag(true); // Set initialization flag to true
+    } catch (e) {
+      print('Error initializing app: $e');
     }
   }
 
@@ -50,8 +89,11 @@ class _HomeScreenState extends State<HomeScreen> {
     await _findImageFilesRecursive(baseDirectory, files);
     await detectImages(files);
     setState(() {
-      isImagesDetected = true; // Update flag after detecting images
+      isImagesDetected = true;
     });
+    // Cache the detected image albums
+    await writeCachedImageAlbums(imageAlbums);
+    print('Cached image albums written: $imageAlbums');
   }
 
   Future<void> _findImageFilesRecursive(
@@ -114,11 +156,81 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
-    if (mounted) {
-      if (!_imageAlbumsController.isClosed) {
-        _imageAlbumsController.add(newImageAlbums);
+    // Merge the new image albums with the existing ones
+    newImageAlbums.forEach((category, images) {
+      imageAlbums.putIfAbsent(category, () => []);
+      imageAlbums[category]!.addAll(images);
+    });
+
+    // Notify listeners with the updated image albums map
+    _imageAlbumsController.add(imageAlbums);
+  }
+
+  Future<void> writeInitializationFlag(bool initialized) async {
+    try {
+      final file = await _getInitializationFlagFile();
+      if (file != null) {
+        await file.writeAsString(initialized ? '1' : '0');
+      }
+    } catch (e) {
+      print('Error writing initialization flag to file: $e');
+    }
+  }
+
+  Future<bool> readInitializationFlag() async {
+    try {
+      final file = await _getInitializationFlagFile();
+      if (file != null && file.existsSync()) {
+        String content = await file.readAsString();
+        return content.trim() == '1';
+      }
+    } catch (e) {
+      print('Error reading initialization flag from file: $e');
+    }
+    return false;
+  }
+
+  Future<File?> _getInitializationFlagFile() async {
+    final directory = await getApplicationDocumentsDirectory();
+    return File('${directory.path}/initialization_flag.txt');
+  }
+
+  Future<void> writeCachedImageAlbums(Map<String, List<String>> imageAlbums) async {
+    try {
+      final file = await _getCachedImageAlbumsFile();
+      if (file != null) {
+        await file.writeAsString(json.encode(imageAlbums));
+      }
+    } catch (e) {
+      print('Error writing cached image albums to file: $e');
+    }
+  }
+
+  Future<Map<String, List<String>>> readCachedImageAlbums() async {
+  try {
+    final file = await _getCachedImageAlbumsFile();
+    if (file != null && file.existsSync()) {
+      String content = await file.readAsString();
+      print('Cached image albums content: $content');
+      final decodedData = json.decode(content);
+      if (decodedData is Map<String, dynamic>) {
+        return decodedData.map((key, value) => MapEntry(key, List<String>.from(value)));
+      } else {
+        print('Invalid format for cached image albums data.');
       }
     }
+  } catch (e) {
+    print('Error reading cached image albums from file: $e');
+  }
+  return {};
+}
+
+
+
+
+  Future<File?> _getCachedImageAlbumsFile() async {
+    final directory = await getApplicationDocumentsDirectory();
+    return File('${directory.path}/cached_image_albums.json');
   }
 
   @override
@@ -127,12 +239,36 @@ class _HomeScreenState extends State<HomeScreen> {
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Categories'),
+          title: Text('Categories'),
           centerTitle: true,
+          actions: [
+            IconButton(
+              icon: Icon(Icons.info),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text('Initialization Status'),
+                      content: Text(_initialized ? 'App initialized' : 'App not initialized'),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text('Close'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+          ],
         ),
         body: StreamBuilder<Map<String, List<String>>>(
           stream: _imageAlbumsController.stream,
-          builder: (context, snapshot) {
+          builder: (context, AsyncSnapshot<Map<String, List<String>>?> snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(
                 child: CircularProgressIndicator(),
@@ -155,26 +291,24 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       ElevatedButton(
                         onPressed: () {
-                          // Navigate to the SearchScreen when the "Search" button is clicked
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => SearchScreen()),
+                              builder: (context) => SearchScreen(),
+                            ),
                           );
                         },
                         child: Text('Search'),
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          // Show the utilities panel when the "Utilities" button is clicked
                           showModalBottomSheet(
                             context: context,
                             builder: (BuildContext context) {
                               return Container(
                                 padding: EdgeInsets.all(20),
                                 child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceAround,
+                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                                   children: [
                                     ElevatedButton(
                                       onPressed: () {
@@ -201,8 +335,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 Expanded(
                   child: GridView.builder(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       mainAxisSpacing: 0,
                       crossAxisSpacing: 0,
@@ -211,7 +344,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemCount: data.length,
                     itemBuilder: (context, index) {
                       var albumName = data.keys.elementAt(index);
-                      var thumbnailPath = data[albumName]!.first;
+                      var thumbnailPaths = data[albumName]!;
                       return GestureDetector(
                         onTap: () {
                           Navigator.push(
@@ -219,7 +352,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             MaterialPageRoute(
                               builder: (context) => ClassificationAlbumScreen(
                                 classificationName: albumName,
-                                imageFiles: data[albumName]!,
+                                imageFiles: thumbnailPaths,
                               ),
                             ),
                           );
@@ -236,7 +369,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(10),
                                     child: Image.file(
-                                      File(thumbnailPath),
+                                      File(thumbnailPaths.first),
                                       width: 170,
                                       height: 170,
                                       fit: BoxFit.cover,

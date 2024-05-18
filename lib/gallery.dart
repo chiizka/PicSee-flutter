@@ -38,15 +38,15 @@ class _GalleryState extends State<Gallery> {
         children: [
           PageStorage(
             bucket: PageStorageBucket(), // Add an empty bucket
-            child: AllPhotoScreen(),
-          ),
-          PageStorage(
-            bucket: PageStorageBucket(), // Add an empty bucket
             child: HomeScreen(),
           ),
           PageStorage(
             bucket: PageStorageBucket(), // Add an empty bucket
-            child: AlbumsScreen(),
+            child: EmptyScreen(),
+          ),
+          PageStorage(
+            bucket: PageStorageBucket(), // Add an empty bucket
+            child: EmptyScreen(),
           ),
         ],
       ),
