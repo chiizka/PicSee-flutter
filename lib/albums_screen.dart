@@ -87,14 +87,15 @@ class _AlbumsScreen extends State<AlbumsScreen> {
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         appBar: AppBar(
-          title: const Text(
-          'Albums',
-          style: TextStyle(
-            color:   Color.fromARGB(255, 174, 106, 208),
-            fontWeight: FontWeight.bold,
-            fontSize: 25// Make font bold here
+          title: Text(
+            'Albums',
+            style: TextStyle(
+              color: const Color.fromARGB(255, 174, 106, 208),
+              fontWeight: FontWeight.bold,
+              fontSize: MediaQuery.of(context).size.width *
+                  0.05, // Adjust the factor as needed
+            ),
           ),
-        ),
           centerTitle: true,
         ),
         backgroundColor: Colors.white,
@@ -103,7 +104,7 @@ class _AlbumsScreen extends State<AlbumsScreen> {
             crossAxisCount: 2, // Number of columns
             mainAxisSpacing: 0, // Spacing between rows
             crossAxisSpacing: 0, // Spacing between columns
-            childAspectRatio: 0.8, // Adjust the aspect ratio as needed
+            childAspectRatio: 1, // Adjust the aspect ratio as needed
           ),
           itemCount: albums.length,
           itemBuilder: (context, index) {
@@ -132,14 +133,14 @@ class _AlbumsScreen extends State<AlbumsScreen> {
                           borderRadius: BorderRadius.circular(10),
                           child: Image.file(
                             File(albums[index].thumbnailPath),
-                            width: 170,
-                            height: 170,
+                            width: MediaQuery.of(context).size.width * 0.4,
+                            height: MediaQuery.of(context).size.width * 0.4,
                             fit: BoxFit.cover,
                           ),
                         ),
                         Container(
-                            width: 170,
-                            height: 170,
+                            width: MediaQuery.of(context).size.width * 0.4,
+                            height: MediaQuery.of(context).size.width * 0.4,
                             decoration: BoxDecoration(
                               color: Colors.black.withOpacity(0.5),
                               borderRadius: BorderRadius.circular(15),
@@ -150,10 +151,11 @@ class _AlbumsScreen extends State<AlbumsScreen> {
                             child: Text(
                               albums[index].name.split('/').last,
                               textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: Colors.white, // Text color
-                                fontSize: 16, // Text size
-                                fontWeight: FontWeight.bold, // Text weight
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: MediaQuery.of(context).size.width *
+                                    0.04, // Adjust the factor as needed
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),

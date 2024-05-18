@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:picsee/all_photo_screen.dart';
 import 'package:picsee/albums_screen.dart';
 import 'package:picsee/home_screen.dart';
-import 'package:picsee/empty.dart';
+import 'package:picsee/search.dart';
 
 class Gallery extends StatefulWidget {
   @override
@@ -37,24 +37,29 @@ class _GalleryState extends State<Gallery> {
         },
         children: [
           PageStorage(
-            bucket: PageStorageBucket(), // Add an empty bucket
+            bucket: PageStorageBucket(),
             child: AllPhotoScreen(),
           ),
           PageStorage(
-            bucket: PageStorageBucket(), // Add an empty bucket
+            bucket: PageStorageBucket(),
             child: HomeScreen(),
           ),
           PageStorage(
-            bucket: PageStorageBucket(), // Add an empty bucket
+            bucket: PageStorageBucket(),
             child: AlbumsScreen(),
           ),
+          PageStorage(
+            bucket: PageStorageBucket(),
+            child: SearchScreen(),
+          ), // New screen added
         ],
       ),
       bottomNavigationBar: ClipRRect(
         child: Container(
-          height: 60.0,
-          width: 20.0,
+          height: 65.0,
+          width: 30.0,
           child: BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
             currentIndex: _currentIndex,
             backgroundColor: const Color.fromRGBO(255, 255, 255, 1),
             iconSize: 30,
@@ -82,13 +87,13 @@ class _GalleryState extends State<Gallery> {
                 icon: Icon(Icons.folder_copy_outlined),
                 label: 'Local Albums',
               ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.search),
+                label: 'Search', // New item label
+              ), // New item added
             ],
             onTap: (index) {
-              _pageController.animateToPage(
-                index,
-                duration: Duration(milliseconds: 500),
-                curve: Curves.ease,
-              );
+              _pageController.jumpToPage(index);
             },
           ),
         ),

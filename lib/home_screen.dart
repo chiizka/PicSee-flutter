@@ -242,14 +242,16 @@ class _HomeScreenState extends State<HomeScreen> {
       home: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
-            title: const Text(
+          backgroundColor: Colors.white,
+          title:  Text(
           'Categories',
-          style: TextStyle(
-            color:   Color.fromARGB(255, 174, 106, 208),
-            fontWeight: FontWeight.bold,
-            fontSize: 25// Make font bold here
+            style: TextStyle(
+              color:const Color.fromARGB(255, 174, 106, 208),
+              fontWeight: FontWeight.bold,
+              fontSize: MediaQuery.of(context).size.width * 0.05, // Adjust the factor as needed
+            ),
           ),
-        ),
+
           centerTitle: true,
           actions: [
             IconButton(
@@ -297,56 +299,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
             return Column(
               children: [
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => SearchScreen(),
-                            ),
-                          );
-                        },
-                        child: Text('Search'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          showModalBottomSheet(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return Container(
-                                padding: EdgeInsets.all(20),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceAround,
-                                  children: [
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        // Action for "New Album"
-                                      },
-                                      child: Text('New Album'),
-                                    ),
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        // Action for "Manual Categorization"
-                                      },
-                                      child: Text('Manual Categorization'),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          );
-                        },
-                        child: Text('Utilities'),
-                      ),
-                    ],
-                  ),
-                ),
                 Expanded(
                   child: GridView.builder(
                     gridDelegate:
@@ -354,7 +306,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       crossAxisCount: 2,
                       mainAxisSpacing: 0,
                       crossAxisSpacing: 0,
-                      childAspectRatio: 0.8,
+                      childAspectRatio: 1,
                     ),
                     itemCount: data.length,
                     itemBuilder: (context, index) {
@@ -385,14 +337,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                     borderRadius: BorderRadius.circular(10),
                                     child: Image.file(
                                       File(thumbnailPaths.first),
-                                      width: 170,
-                                      height: 170,
+                                      width: MediaQuery.of(context).size.width * 0.4,
+                                      height: MediaQuery.of(context).size.width * 0.4,
                                       fit: BoxFit.cover,
                                     ),
                                   ),
                                   Container(
-                                    width: 170,
-                                    height: 170,
+                                    width: MediaQuery.of(context).size.width * 0.4,
+                                    height: MediaQuery.of(context).size.width * 0.4,
                                     decoration: BoxDecoration(
                                       color: Colors.black.withOpacity(0.5),
                                       borderRadius: BorderRadius.circular(15),
@@ -404,9 +356,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                       child: Text(
                                         albumName,
                                         textAlign: TextAlign.center,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           color: Colors.white,
-                                          fontSize: 16,
+                                          fontSize: MediaQuery.of(context).size.width * 0.04, // Adjust the factor as needed
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),

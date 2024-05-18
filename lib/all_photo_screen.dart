@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -13,7 +12,8 @@ class AllPhotoScreen extends StatefulWidget {
   _AllPhotoScreenState createState() => _AllPhotoScreenState();
 }
 
-class _AllPhotoScreenState extends State<AllPhotoScreen> with AutomaticKeepAliveClientMixin<AllPhotoScreen> {
+class _AllPhotoScreenState extends State<AllPhotoScreen>
+    with AutomaticKeepAliveClientMixin<AllPhotoScreen> {
   List<String> imageFiles = [];
   String root = '/storage/emulated/0';
   bool _initialized = false;
@@ -195,6 +195,7 @@ class _AllPhotoScreenState extends State<AllPhotoScreen> with AutomaticKeepAlive
                           mainAxisSpacing: 10,
                         ),
                         itemBuilder: (context, index) {
+                          final reversedIndex = imageFiles.length - 1 - index;
                           return RawMaterialButton(
                             onPressed: () {
                               Navigator.push(
@@ -202,7 +203,7 @@ class _AllPhotoScreenState extends State<AllPhotoScreen> with AutomaticKeepAlive
                                 MaterialPageRoute(
                                   builder: (context) => ViewerScreen(
                                     imageFiles: imageFiles,
-                                    initialIndex: index,
+                                    initialIndex: reversedIndex,
                                   ),
                                 ),
                               );
@@ -211,7 +212,7 @@ class _AllPhotoScreenState extends State<AllPhotoScreen> with AutomaticKeepAlive
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(5),
                                 image: DecorationImage(
-                                  image: FileImage(File(imageFiles[index])),
+                                   image: FileImage(File(imageFiles[reversedIndex])),
                                   fit: BoxFit.cover,
                                 ),
                               ),

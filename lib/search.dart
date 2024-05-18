@@ -70,6 +70,7 @@ class _SearchScreenState extends State<SearchScreen> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
+        backgroundColor: Colors.white,
         appBar: AppBar(
           title: const Text('Search'),
           leading: IconButton(
@@ -87,6 +88,7 @@ class _SearchScreenState extends State<SearchScreen> {
           ],
         ),
         body: Container(
+          
           padding: const EdgeInsets.all(8.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
