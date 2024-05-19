@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:picsee/viewer_screen.dart';
@@ -15,8 +15,10 @@ class ShowSearchScreen extends StatefulWidget {
 }
 
 class _ShowSearchScreenState extends State<ShowSearchScreen> {
-  Map<String, List<String>> cachedImageAlbums = {}; // Store the cached image albums here
-  Map<String, List<String>> filteredImageAlbums = {}; // Store the filtered image albums here
+  Map<String, List<String>> cachedImageAlbums = {};
+  Map<String, List<String>> filteredImageAlbums = {};
+  StreamController<Map<String, List<String>>> _filteredAlbumsController = StreamController.broadcast();
+  static Map<String, List<String>> _memoryCache = {};
 
   @override
   void initState() {
@@ -26,53 +28,63 @@ class _ShowSearchScreenState extends State<ShowSearchScreen> {
     loadCachedImageAlbums();
   }
 
+  @override
+  void dispose() {
+    _filteredAlbumsController.close();
+    super.dispose();
+  }
+
   Future<void> loadCachedImageAlbums() async {
     try {
-      cachedImageAlbums = await readCachedImageAlbums();
+      if (_memoryCache.isNotEmpty) {
+        cachedImageAlbums = _memoryCache;
+      } else {
+        cachedImageAlbums = await readCachedImageAlbums();
+        _memoryCache = cachedImageAlbums;
+      }
       print('Number of labels read from cache: ${cachedImageAlbums.length}');
       print('Labels read from cache: ${cachedImageAlbums.keys}');
       filterCachedImageAlbums();
-      setState(() {}); // Trigger a rebuild to display the labels
     } catch (e) {
       print('Error loading cached image albums: $e');
     }
   }
 
   void filterCachedImageAlbums() {
-    filteredImageAlbums.clear(); // Clear the filtered albums first
+    filteredImageAlbums.clear();
     for (var passedTag in widget.tags.keys) {
-      // Remove whitespace from the passed tag
       var cleanedPassedTag = passedTag.trim();
-      // Check if the cleaned tag exists in the cached image albums
       for (var cachedTag in cachedImageAlbums.keys) {
-        // Remove whitespace from the cached tag
         var cleanedCachedTag = cachedTag.trim();
         if (cleanedPassedTag.toLowerCase() == cleanedCachedTag.toLowerCase()) {
-          // Perform case-insensitive comparison
           filteredImageAlbums[passedTag] = cachedImageAlbums[cachedTag]!;
-          break; // Stop searching once a match is found
+          break;
         }
       }
     }
-
-    print('Number of labels after filtering: ${filteredImageAlbums.length}');
-    print('Labels after filtering: ${filteredImageAlbums.keys}');
+    _filteredAlbumsController.add(filteredImageAlbums);
   }
 
   Future<Map<String, List<String>>> readCachedImageAlbums() async {
-    try {
-      final file = await _getCachedImageAlbumsFile();
-      if (file != null && file.existsSync()) {
-        String content = await file.readAsString();
-        final decodedData = json.decode(content);
-        if (decodedData is Map<String, dynamic>) {
-          return decodedData.map((key, value) => MapEntry(key, List<String>.from(value)));
-        } else {
-          print('Invalid format for cached image albums data.');
+    int retries = 5;
+    while (retries > 0) {
+      try {
+        final file = await _getCachedImageAlbumsFile();
+        if (file != null && file.existsSync()) {
+          String content = await file.readAsString();
+          final decodedData = json.decode(content);
+          if (decodedData is Map<String, dynamic>) {
+            return decodedData.map((key, value) => MapEntry(key, List<String>.from(value)));
+          } else {
+            print('Invalid format for cached image albums data.');
+          }
         }
+        break;
+      } catch (e) {
+        print('Error reading cached image albums from file: $e');
+        await Future.delayed(Duration(milliseconds: 500)); // Retry after delay
+        retries--;
       }
-    } catch (e) {
-      print('Error reading cached image albums from file: $e');
     }
     return {};
   }
@@ -83,18 +95,20 @@ class _ShowSearchScreenState extends State<ShowSearchScreen> {
   }
 
   Future<void> _navigateToViewerScreen(List<String> images, int initialIndex) async {
-    // Load images asynchronously before navigating to the viewer screen
-    await Future.wait(images.map((imagePath) => precacheImage(FileImage(File(imagePath)), context)));
-    // Navigate to the viewer screen after images are loaded
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ViewerScreen(
-          imageFiles: images,
-          initialIndex: initialIndex,
+    try {
+      await Future.wait(images.map((imagePath) => precacheImage(FileImage(File(imagePath)), context)));
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ViewerScreen(
+            imageFiles: images,
+            initialIndex: initialIndex,
+          ),
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      print('Error navigating to viewer screen: $e');
+    }
   }
 
   @override
@@ -112,68 +126,154 @@ class _ShowSearchScreenState extends State<ShowSearchScreen> {
             },
           ),
         ),
-        body: ListView.builder(
-          itemCount: filteredImageAlbums.length,
-          itemBuilder: (context, index) {
-            var tag = filteredImageAlbums.keys.elementAt(index);
-            var images = filteredImageAlbums[tag] ?? [];
-            var imageCount = images.length;
+        body: StreamBuilder<Map<String, List<String>>>(
+          stream: _filteredAlbumsController.stream,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return Center(child: Text('Error loading images: ${snapshot.error}'));
+            }
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Center(child: Text('No images found'));
+            }
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      Text(
-                        tag,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+            var filteredImageAlbums = snapshot.data!;
+            return ListView.builder(
+              itemCount: filteredImageAlbums.length,
+              itemBuilder: (context, index) {
+                var tag = filteredImageAlbums.keys.elementAt(index);
+                var images = filteredImageAlbums[tag] ?? [];
+                var imageCount = images.length;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          Text(
+                            tag,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            '($imageCount images)',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(width: 8),
-                      Text(
-                        '($imageCount images)',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 8),
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 4.0,
-                    mainAxisSpacing: 4.0,
-                  ),
-                  itemCount: images.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return GestureDetector(
-                      onTap: () async {
-                        await _navigateToViewerScreen(images, index);
-                      },
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.file(
-                          File(images[index]),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ],
+                    ),
+                    SizedBox(height: 8),
+                    PaginatedGrid(images: images),
+                  ],
+                );
+              },
             );
           },
         ),
       ),
     );
+  }
+}
+
+class PaginatedGrid extends StatefulWidget {
+  final List<String> images;
+
+  PaginatedGrid({required this.images});
+
+  @override
+  _PaginatedGridState createState() => _PaginatedGridState();
+}
+
+class _PaginatedGridState extends State<PaginatedGrid> {
+  ScrollController _scrollController = ScrollController();
+  List<String> _displayedImages = [];
+  int _currentMax = 20;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMoreImages();
+
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+        _loadMoreImages();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _loadMoreImages() {
+    setState(() {
+      int nextMax = _currentMax + 20;
+      if (nextMax > widget.images.length) {
+        nextMax = widget.images.length;
+      }
+      _displayedImages = widget.images.sublist(0, nextMax);
+      _currentMax = nextMax;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      controller: _scrollController,
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 4.0,
+        mainAxisSpacing: 4.0,
+      ),
+      itemCount: _displayedImages.length,
+      itemBuilder: (BuildContext context, int index) {
+        return GestureDetector(
+          onTap: () async {
+            await _navigateToViewerScreen(_displayedImages, index);
+          },
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Image.file(
+              File(_displayedImages[index]),
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Center(child: Text('Error loading image'));
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _navigateToViewerScreen(List<String> images, int initialIndex) async {
+    try {
+      await Future.wait(images.map((imagePath) => precacheImage(FileImage(File(imagePath)), context)));
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ViewerScreen(
+            imageFiles: images,
+            initialIndex: initialIndex,
+          ),
+        ),
+      );
+    } catch (e) {
+      print('Error navigating to viewer screen: $e');
+    }
   }
 }

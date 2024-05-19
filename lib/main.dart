@@ -19,3 +19,4 @@ class MyApp extends StatelessWidget {
         home: SplashScreen()); //call yun splash screen
   }
 }
+    
