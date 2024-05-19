@@ -47,6 +47,11 @@ class _AllPhotoScreenState extends State<AllPhotoScreen>
   Future<void> initApp() async {
     print('Initializing app...');
     await _findImageFilesRecursive(Directory(root));
+    imageFiles.sort((a, b) {
+      File fileA = File(a);
+      File fileB = File(b);
+      return fileB.lastModifiedSync().compareTo(fileA.lastModifiedSync());
+    });
     await _writeImagePathsToFile(imageFiles);
     await _writeInitializationFlag(true);
     _initializedBefore = true;
@@ -213,7 +218,7 @@ class _AllPhotoScreenState extends State<AllPhotoScreen>
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(5),
                                 image: DecorationImage(
-                                   image: FileImage(File(imageFiles[reversedIndex])),
+                                  image: FileImage(File(imageFiles[reversedIndex])),
                                   fit: BoxFit.cover,
                                 ),
                               ),
