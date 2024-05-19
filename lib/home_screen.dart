@@ -13,7 +13,7 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMixin {
   String root = '/storage/emulated/0';
   Map<String, List<String>> imageAlbums = {};
   bool isModelLoaded = false;
@@ -24,8 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _imageAlbumsController =
-        StreamController<Map<String, List<String>>>.broadcast();
+    _imageAlbumsController = StreamController<Map<String, List<String>>>.broadcast();
     checkInitialization();
   }
 
@@ -90,17 +89,10 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     await _findImageFilesRecursive(baseDirectory, files);
-    await detectImages(files);
-    setState(() {
-      isImagesDetected = true;
-    });
-    // Cache the detected image albums
-    await writeCachedImageAlbums(imageAlbums);
-    print('Cached image albums written: $imageAlbums');
+    detectImages(files);
   }
 
-  Future<void> _findImageFilesRecursive(
-      Directory directory, List<String> files) async {
+  Future<void> _findImageFilesRecursive(Directory directory, List<String> files) async {
     List<FileSystemEntity> entities = directory.listSync();
 
     for (FileSystemEntity entity in entities) {
@@ -139,34 +131,49 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> detectImages(List<String> imageFiles) async {
-    Map<String, List<String>> newImageAlbums = {};
-
     for (String imagePath in imageFiles) {
       File image = File(imagePath);
-      var recognitions = await Tflite.runModelOnImage(
-        path: image.path,
-        numResults: 8,
-        threshold: 0.05,
-        imageMean: 127.5,
-        imageStd: 127.5,
-      );
 
-      for (int i = 0; i < recognitions!.length; i++) {
-        if (recognitions[i]!['confidence'] >= 0.90) {
-          String category = recognitions[i]!['label'];
-          newImageAlbums.putIfAbsent(category, () => []).add(image.path);
+      // Check if the image is already processed or in the cache
+      bool isProcessed = false;
+      for (List<String> paths in imageAlbums.values) {
+        if (paths.contains(imagePath)) {
+          isProcessed = true;
+          break;
+        }
+      }
+
+      if (!isProcessed) {
+        var recognitions = await Tflite.runModelOnImage(
+          path: image.path,
+          numResults: 8,
+          threshold: 0.05,
+          imageMean: 127.5,
+          imageStd: 127.5,
+        );
+
+        for (int i = 0; i < recognitions!.length; i++) {
+          if (recognitions[i]!['confidence'] >= 0.90) {
+            String category = recognitions[i]!['label'];
+            if (!imageAlbums.containsKey(category)) {
+              imageAlbums[category] = [];
+            }
+            imageAlbums[category]!.add(image.path);
+
+            // Notify listeners with the updated image albums map incrementally
+            _imageAlbumsController.add(Map<String, List<String>>.from(imageAlbums));
+          }
         }
       }
     }
 
-    // Merge the new image albums with the existing ones
-    newImageAlbums.forEach((category, images) {
-      imageAlbums.putIfAbsent(category, () => []);
-      imageAlbums[category]!.addAll(images);
+    setState(() {
+      isImagesDetected = true;
     });
 
-    // Notify listeners with the updated image albums map
-    _imageAlbumsController.add(imageAlbums);
+    // Cache the detected image albums
+    await writeCachedImageAlbums(imageAlbums);
+    print('Cached image albums written: $imageAlbums');
   }
 
   Future<void> writeInitializationFlag(bool initialized) async {
@@ -198,8 +205,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return File('${directory.path}/initialization_flag.txt');
   }
 
-  Future<void> writeCachedImageAlbums(
-      Map<String, List<String>> imageAlbums) async {
+  Future<void> writeCachedImageAlbums(Map<String, List<String>> imageAlbums) async {
     try {
       final file = await _getCachedImageAlbumsFile();
       if (file != null) {
@@ -218,8 +224,7 @@ class _HomeScreenState extends State<HomeScreen> {
         print('Cached image albums content: $content');
         final decodedData = json.decode(content);
         if (decodedData is Map<String, dynamic>) {
-          return decodedData
-              .map((key, value) => MapEntry(key, List<String>.from(value)));
+          return decodedData.map((key, value) => MapEntry(key, List<String>.from(value)));
         } else {
           print('Invalid format for cached image albums data.');
         }
@@ -237,21 +242,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);  // Ensure state is kept alive
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
           backgroundColor: Colors.white,
-          title:  Text(
-          'Categories',
+          title: Text(
+            'Categories',
             style: TextStyle(
-              color:const Color.fromARGB(255, 174, 106, 208),
+              color: const Color.fromARGB(255, 174, 106, 208),
               fontWeight: FontWeight.bold,
               fontSize: MediaQuery.of(context).size.width * 0.05, // Adjust the factor as needed
             ),
           ),
-
           centerTitle: true,
           actions: [
             IconButton(
@@ -262,9 +267,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   builder: (BuildContext context) {
                     return AlertDialog(
                       title: Text('Initialization Status'),
-                      content: Text(_initialized
-                          ? 'App initialized'
-                          : 'App not initialized'),
+                      content: Text(_initialized ? 'App initialized' : 'App not initialized'),
                       actions: [
                         TextButton(
                           onPressed: () {
@@ -282,8 +285,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         body: StreamBuilder<Map<String, List<String>>>(
           stream: _imageAlbumsController.stream,
-          builder:
-              (context, AsyncSnapshot<Map<String, List<String>>?> snapshot) {
+          builder: (context, AsyncSnapshot<Map<String, List<String>>?> snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(
                 child: CircularProgressIndicator(),
@@ -301,8 +303,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Expanded(
                   child: GridView.builder(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       mainAxisSpacing: 0,
                       crossAxisSpacing: 0,
@@ -380,4 +381,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
