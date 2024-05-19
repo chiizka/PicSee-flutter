@@ -36,12 +36,9 @@ class _ShowSearchScreenState extends State<ShowSearchScreen> {
 
   Future<void> loadCachedImageAlbums() async {
     try {
-      if (_memoryCache.isNotEmpty) {
-        cachedImageAlbums = _memoryCache;
-      } else {
-        cachedImageAlbums = await readCachedImageAlbums();
-        _memoryCache = cachedImageAlbums;
-      }
+      _memoryCache.clear();  // Clear memory cache
+      cachedImageAlbums = await readCachedImageAlbums();
+      _memoryCache = cachedImageAlbums;
       print('Number of labels read from cache: ${cachedImageAlbums.length}');
       print('Labels read from cache: ${cachedImageAlbums.keys}');
       filterCachedImageAlbums();

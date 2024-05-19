@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -57,20 +56,19 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void _searchImages() {
-  // Ensure selectedTags is a Map<String, List<String>>
-  Map<String, List<String>> selectedTagsMap = {
-    for (var tag in selectedTags) tag: []
-  };
+    // Ensure selectedTags is a Map<String, List<String>>
+    Map<String, List<String>> selectedTagsMap = {
+      for (var tag in selectedTags) tag: []
+    };
 
-  // Navigate to the screen where you want to show the search results
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => ShowSearchScreen(tags: selectedTagsMap),
-    ),
-  );
-}
-
+    // Navigate to the screen where you want to show the search results
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ShowSearchScreen(tags: selectedTagsMap),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,13 +77,7 @@ class _SearchScreenState extends State<SearchScreen> {
       home: Scaffold(
         appBar: AppBar(
           title: const Text('Search'),
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-          centerTitle: false,
+          centerTitle: true, // Center-align the title
           actions: [
             IconButton(
               icon: Icon(Icons.search),
@@ -105,8 +97,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   List<String> updatedTags = value.split(' ');
                   setState(() {
                     selectedTags.clear();
-                    selectedTags
-                        .addAll(updatedTags.where((tag) => tag.isNotEmpty));
+                    selectedTags.addAll(updatedTags.where((tag) => tag.isNotEmpty));
                   });
                 },
                 decoration: InputDecoration(
@@ -114,9 +105,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   border: OutlineInputBorder(),
                 ),
               ),
-              SizedBox(
-                height: 10,
-              ), // Add some space between the search bar and the "Sample Tags" text
+              SizedBox(height: 10), // Add some space between the search bar and the "Sample Tags" text
               Text(
                 'Sample Tags',
                 style: TextStyle(
@@ -124,9 +113,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(
-                height: 10,
-              ), // Add some space between the "Sample Tags" text and the tag buttons
+              SizedBox(height: 10), // Add some space between the "Sample Tags" text and the tag buttons
               Expanded(
                 child: Wrap(
                   spacing: 8.0,
