@@ -159,6 +159,7 @@ class _AllPhotoScreenState extends State<AllPhotoScreen>
               ),
               textAlign: TextAlign.center,
             ),
+            
             Text(
               ' ${imageFiles.length} Photos',
               style: const TextStyle(

@@ -12,13 +12,44 @@ class ClassificationAlbumScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(classificationName),
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(
+              height: 10,
+            ),
+          Text(
+            classificationName,
+            style: const TextStyle(
+              color: Colors.white, // Change text color to white
+            ),
+          ),
+          Text(
+            ' ${imageFiles.length} Photos',
+            style: const TextStyle(
+              fontSize: 12,
+              color: Colors.white,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(
+              height: 10,
+            ),
+        ],
       ),
-      backgroundColor: Colors.white,
-      body: GridView.builder(
+      backgroundColor: const Color.fromARGB(255, 174, 106, 208),
+    ),
+    backgroundColor: Colors.white,
+    body: Padding(
+      padding: const EdgeInsets.only(
+        top: 10,
+        left: 10,
+        right: 10,
+      ),
+      child: GridView.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,
           mainAxisSpacing: 4.0,
@@ -50,6 +81,7 @@ class ClassificationAlbumScreen extends StatelessWidget {
           );
         },
       ),
-    );
-  }
+    ),
+  );
+}
 }

@@ -110,7 +110,7 @@ class _AllPhotoScreenState extends State<AllPhotoScreen> {
                       textAlign: TextAlign.center, // Center the text
                     ),
                   ),
-                    Container(width: 48),
+                  Container(width: 48),
                 ],
               ),
               Text(
